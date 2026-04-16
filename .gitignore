@@ -1,0 +1,30 @@
+# Environment variables
+.env
+.env.*
+
+# Generated images and experiment outputs
+experiment_outputs/
+plots/
+
+# Cache and checkpoints
+cache/
+checkpoints/
+
+# Slurm logs
+experiments/slurm/logs/
+
+# Claude config
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,13 @@
+exp_id,experiment_name,kg_source,debiasing_method,steering_signal,description
+0,Baseline (No Intervention),N/A,None,N/A,Generate images from neutral prompts with no debiasing applied
+1,LLM Prompt Rewrite (No KG),N/A,LLM Prompt Rewriting,N/A,LLM directly rewrites the neutral prompt without any KG
+2,Extracted KG + LLM Prompt Rewrite,Extracted from prompt,LLM Prompt Rewriting,N/A,Extract KG triples from prompt then feed KG to LLM to rewrite prompt
+3,Ground Truth KG + LLM Prompt Rewrite,Ground Truth,LLM Prompt Rewriting,N/A,Use ground truth KG triples and feed to LLM to rewrite prompt
+4,Extracted KG + KG Triple Steering Vector,Extracted from prompt,Steering Vector,Full KG triple,Extract KG from prompt and compute steering vector from full triple embeddings
+5,Extracted KG + KG Tail Steering Vector,Extracted from prompt,Steering Vector,KG tail entity only,Extract KG from prompt and compute steering vector from tail entity embeddings only
+6,Ground Truth KG + KG Triple Steering Vector,Ground Truth,Steering Vector,Full KG triple,Use ground truth KG triples to compute steering vector from full triple embeddings
+7,Ground Truth KG + KG Tail Steering Vector,Ground Truth,Steering Vector,KG tail entity only,Use ground truth KG tail entities to compute steering vector
+8,Extracted KG + LLM Stereo-Anti Pair Steering Vector,Extracted from prompt,Steering Vector,LLM-generated stereo/anti-stereo pair,Extract KG then LLM generates stereotype and anti-stereotype text pairs for steering vector
+9,Ground Truth KG + LLM Stereo-Anti Pair Steering Vector,Ground Truth,Steering Vector,LLM-generated stereo/anti-stereo pair,Ground truth KG fed to LLM to generate stereo/anti-stereo pairs for steering vector
+10,Extracted KG + GT Stereo-Anti Pair Steering Vector,Extracted from prompt,Steering Vector,Ground truth stereo/anti-stereo pair,Extract KG combined with ground truth stereotype/anti-stereotype pairs for steering vector
+11,Ground Truth KG + GT Stereo-Anti Pair Steering Vector,Ground Truth,Steering Vector,Ground truth stereo/anti-stereo pair,Ground truth KG with ground truth stereo/anti-stereo pairs for steering vector
