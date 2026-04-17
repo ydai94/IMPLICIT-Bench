@@ -196,45 +196,36 @@ def process_row(row_data, case_lookup, exp_id):
     }
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Evaluate experiment images")
-    parser.add_argument("--exp-id", type=int, required=True,
-                        choices=list(EXPERIMENT_NAMES.keys()))
-    parser.add_argument("--sample", type=int, default=0)
-    parser.add_argument("--manifest", type=str, default=None,
-                        help="Custom manifest CSV path")
-    parser.add_argument("--output-jsonl", type=str, default=None,
-                        help="Custom output JSONL path")
-    parser.add_argument("--workers", type=int, default=8,
-                        help="Number of parallel API workers")
-    args = parser.parse_args()
-
-    if not OPENROUTER_API_KEY:
-        print("ERROR: OPENROUTER_API_KEY not set")
-        sys.exit(1)
-
-    exp_id = args.exp_id
+def evaluate_experiment(exp_id, case_lookup, sample=0, manifest_path=None,
+                        output_jsonl=None, workers=8):
+    """Evaluate a single experiment. Returns number of entries processed."""
     output_dir = exp_output_dir(exp_id)
     os.makedirs(EVAL_RESULTS_DIR, exist_ok=True)
 
     # Load manifest
-    manifest_path = args.manifest or os.path.join(output_dir, "manifest.csv")
-    if not os.path.exists(manifest_path):
-        print(f"Error: manifest not found at {manifest_path}")
-        return
+    manifest_path = manifest_path or os.path.join(output_dir, "manifest.csv")
+    if not os.path.exists(manifest_path) or os.path.getsize(manifest_path) <= 1:
+        print(f"Exp {exp_id}: manifest not found or empty, skipping")
+        return 0
 
-    manifest = pd.read_csv(manifest_path)
+    try:
+        manifest = pd.read_csv(manifest_path)
+    except pd.errors.EmptyDataError:
+        print(f"Exp {exp_id}: manifest has no data, skipping")
+        return 0
+    if len(manifest) == 0:
+        print(f"Exp {exp_id}: manifest is empty, skipping")
+        return 0
+
+    print(f"\n{'='*60}")
+    print(f"Exp {exp_id}: {EXPERIMENT_NAMES[exp_id]}")
     print(f"Loaded manifest: {len(manifest)} entries")
 
-    if args.sample > 0:
-        manifest = manifest.head(args.sample)
-
-    # Load case data for KG context
-    cases_df = pd.read_csv(DATA_CSV)
-    case_lookup = cases_df.set_index("id").to_dict("index")
+    if sample > 0:
+        manifest = manifest.head(sample)
 
     # Load existing results for resume
-    results_jsonl = args.output_jsonl or os.path.join(
+    results_jsonl = output_jsonl or os.path.join(
         EVAL_RESULTS_DIR, f"exp_{exp_id:02d}_eval.jsonl")
 
     processed_keys = set()
@@ -269,12 +260,12 @@ def main():
 
     if not rows_to_process:
         print("Nothing to do.")
-        return
+        return 0
 
     fout = open(results_jsonl, "a")
     pbar = tqdm(total=len(rows_to_process), desc=f"Eval exp {exp_id}")
 
-    with ThreadPoolExecutor(max_workers=args.workers) as executor:
+    with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = {
             executor.submit(process_row, row_data, case_lookup, exp_id): row_data
             for row_data in rows_to_process
@@ -302,9 +293,59 @@ def main():
     if results:
         csv_path = results_jsonl.replace(".jsonl", ".csv")
         pd.DataFrame(results).to_csv(csv_path, index=False)
-        print(f"\nEvaluation complete! {len(results)} entries -> {csv_path}")
+        print(f"Evaluation complete! {len(results)} entries -> {csv_path}")
     else:
-        print("\nNo results generated.")
+        print("No results generated.")
+
+    return len(rows_to_process)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Evaluate experiment images")
+    parser.add_argument("--exp-id", type=int, nargs="+", default=None,
+                        choices=list(EXPERIMENT_NAMES.keys()),
+                        help="Experiment ID(s) to evaluate (default: all)")
+    parser.add_argument("--all", action="store_true",
+                        help="Evaluate all experiments")
+    parser.add_argument("--sample", type=int, default=0)
+    parser.add_argument("--manifest", type=str, default=None,
+                        help="Custom manifest CSV path (only for single exp)")
+    parser.add_argument("--output-jsonl", type=str, default=None,
+                        help="Custom output JSONL path (only for single exp)")
+    parser.add_argument("--workers", type=int, default=8,
+                        help="Number of parallel API workers")
+    args = parser.parse_args()
+
+    if not OPENROUTER_API_KEY:
+        print("ERROR: OPENROUTER_API_KEY not set")
+        sys.exit(1)
+
+    # Determine which experiments to run
+    if args.all:
+        exp_ids = sorted(EXPERIMENT_NAMES.keys())
+    elif args.exp_id:
+        exp_ids = args.exp_id
+    else:
+        parser.error("Provide --exp-id or --all")
+
+    # Load case data once (shared across experiments)
+    cases_df = pd.read_csv(DATA_CSV)
+    case_lookup = cases_df.set_index("id").to_dict("index")
+
+    total_processed = 0
+    for exp_id in exp_ids:
+        n = evaluate_experiment(
+            exp_id, case_lookup,
+            sample=args.sample,
+            manifest_path=args.manifest if len(exp_ids) == 1 else None,
+            output_jsonl=args.output_jsonl if len(exp_ids) == 1 else None,
+            workers=args.workers,
+        )
+        total_processed += n
+
+    print(f"\n{'='*60}")
+    print(f"All done! Processed {total_processed} images across "
+          f"{len(exp_ids)} experiments.")
 
 
 if __name__ == "__main__":

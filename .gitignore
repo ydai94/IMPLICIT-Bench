@@ -6,8 +6,8 @@
 experiment_outputs/
 plots/
 
-# Cache and checkpoints
-cache/
+# Cache (only embeddings are large; track the rest)
+cache/embeddings/
 checkpoints/
 
 # Slurm logs
