@@ -135,3 +135,41 @@ Religion (baseline 3.89) and physical-appearance (baseline 3.73) remain the most
 - **Single evaluator**: All scores come from one VLM (Qwen3-VL). Cross-model validation is recommended.
 - **Single alpha**: All steering experiments use alpha=2.0. Optimal alpha may vary by method and bias type.
 - **No image quality metric**: Lower stereotype scores are desirable, but we don't yet measure whether images remain faithful to the neutral prompt.
+
+
+## Ziyang
+
+## Comparison of Average Stereotype Scores Across Baseline Prompt Types and Neutral-Only Experimental Settings
+| Configuration | Prompt Type | Mean Score | Sample Size |
+| --- | --- | ---: | ---: |
+| Baseline | Anti-stereotype prompt (`qwen_anti`) | 0.718 | 1896 |
+| Baseline | Neutral prompt (`qwen_neutral`) | 3.462 | 1895 |
+| Baseline | Stereotype prompt (`qwen_stereo`) | 4.243 | 1896 |
+| Exp-01 | Neutral prompt only | 3.051 | 2070 |
+| Exp-02 | Neutral prompt only | 2.917 | 2070 |
+| Exp-03 | Neutral prompt only | 2.600 | 2070 |
+
+Notes:
+- Results are computed on the shared subset across `baseline`, `exp_01`, `exp_02`, and `exp_03`.
+- The shared subset contains 690 cases and 2070 `(case, seed)` samples in total.
+- Baseline scores are taken from `merged_all.csv` using Qwen annotations only: `qwen_anti`, `qwen_neutral`, and `qwen_stereo`.
+- `Exp-01`, `Exp-02`, and `Exp-03` use neutral prompts only for image generation, and the reported values are the mean evaluation `score` from the corresponding JSONL files.
+- Some baseline rows have blank Qwen score fields, so the effective sample sizes differ across baseline prompt types.
+
+
+## Seed-wise Comparison of Average Stereotype Scores Across Baseline Prompt Types and Neutral-Only Experimental Settings
+| Configuration | Prompt Type | Seed 0 | Seed 1 | Seed 2 |
+| --- | --- | ---: | ---: | ---: |
+| Baseline | Anti-stereotype prompt (`qwen_anti`) | 0.802 (`n=516`) | 0.683 (`n=690`) | 0.689 (`n=690`) |
+| Baseline | Neutral prompt (`qwen_neutral`) | 3.495 (`n=515`) | 3.444 (`n=690`) | 3.455 (`n=690`) |
+| Baseline | Stereotype prompt (`qwen_stereo`) | 4.210 (`n=516`) | 4.238 (`n=690`) | 4.273 (`n=690`) |
+| Exp-01 | Neutral prompt only | 3.077 (`n=690`) | 3.036 (`n=690`) | 3.039 (`n=690`) |
+| Exp-02 | Neutral prompt only | 2.897 (`n=690`) | 2.901 (`n=690`) | 2.954 (`n=690`) |
+| Exp-03 | Neutral prompt only | 2.581 (`n=690`) | 2.603 (`n=690`) | 2.617 (`n=690`) |
+
+Notes:
+- Results are computed on the shared subset across `baseline`, `exp_01`, `exp_02`, and `exp_03`.
+- The shared subset contains 690 cases for each seed, i.e., 2070 `(case, seed)` samples in total.
+- Baseline scores are taken from `merged_all.csv` using Qwen annotations only: `qwen_anti`, `qwen_neutral`, and `qwen_stereo`.
+- `Exp-01`, `Exp-02`, and `Exp-03` use neutral prompts only for image generation, and each seed contains 690 valid evaluation scores.
+- Some baseline rows have blank Qwen score fields, so the effective sample sizes for baseline differ by prompt type and seed.

@@ -25,9 +25,14 @@ module purge
 module load Anaconda3/2024.02-1
 export CONDA_ENVS_PATH=/data/gpfs/projects/punim2888/anaconda3/envs
 export CONDA_PKGS_DIR=/data/gpfs/projects/punim2888/anaconda3/pkgs
-eval "$(conda shell.bash hook)"
-conda activate videoGen
+export PYTHONNOUSERSITE=1
+unset PYTHONPATH
+
 source /apps/easybuild-2022/easybuild/software/Core/Anaconda3/2024.02-1/etc/profile.d/conda.sh
+conda activate /data/gpfs/projects/punim2888/anaconda3/envs/videoGen
+
+# Sanity check — fail loudly if env didn't activate
+python -c "import sys; assert 'videoGen' in sys.executable, f'WRONG ENV: {sys.executable}'"
 
 SCRIPT_DIR=/data/gpfs/projects/punim2888/stereoimage/experiments
 NUM_GPUS_PER_NODE=2
@@ -43,6 +48,7 @@ echo "Experiment: ${EXP_ID}"
 echo "Job ID: ${SLURM_JOB_ID}, Array Task: ${SLURM_ARRAY_TASK_ID}"
 echo "Shards: ${BASE_SHARD} and $((BASE_SHARD + 1)) of ${TOTAL_SHARDS}"
 echo "User: $(whoami)"
+echo "python = $(which python)"
 echo "========================================"
 
 cd ${SCRIPT_DIR}
