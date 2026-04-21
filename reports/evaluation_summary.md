@@ -137,7 +137,7 @@ Religion (baseline 3.89) and physical-appearance (baseline 3.73) remain the most
 - **No image quality metric**: Lower stereotype scores are desirable, but we don't yet measure whether images remain faithful to the neutral prompt.
 
 
-## Ziyang
+## Ziyang start
 
 ## Comparison of Average Stereotype Scores Across Baseline Prompt Types and Neutral-Only Experimental Settings
 | Configuration | Prompt Type | Mean Score | Sample Size |
@@ -173,3 +173,43 @@ Notes:
 - Baseline scores are taken from `merged_all.csv` using Qwen annotations only: `qwen_anti`, `qwen_neutral`, and `qwen_stereo`.
 - `Exp-01`, `Exp-02`, and `Exp-03` use neutral prompts only for image generation, and each seed contains 690 valid evaluation scores.
 - Some baseline rows have blank Qwen score fields, so the effective sample sizes for baseline differ by prompt type and seed.
+
+
+## 19/04/2026 updated
+### Table 1: Overall Comparison of Neutral-Prompt Stereotype Scores Across Experimental Settings
+| Configuration | Prompt Type | Mean Score | Sample Size |
+| --- | --- | ---: | ---: |
+| Exp-00 (Baseline) | Neutral prompt only | 3.391 | 5493 |
+| Exp-01 | Neutral prompt only | 3.009 | 5493 |
+| Exp-02 | Neutral prompt only | 2.965 | 5493 |
+| Exp-03 | Neutral prompt only | 2.597 | 5493 |
+
+Notes:
+- Exp-01 -> LLM Prompt Rewrite (No KG)
+- Exp-02 -> Extracted KG + LLM Prompt Rewrite
+- Exp-03 ->  Ground Truth KG + LLM Prompt Rewrite
+- Results are computed on the shared subset across `exp_00`, `exp_01`, `exp_02`, and `exp_03`.
+- The shared subset contains 1831 cases and 5493 `(case, seed)` samples in total.
+- `Exp-00` is treated as the baseline.
+- All configurations use neutral prompts only for image generation, and the reported values are the mean evaluation `score` from the corresponding JSONL files.
+
+
+### Table 2: Seed-wise Comparison of Neutral-Prompt Stereotype Scores Across Experimental Settings
+| Configuration | Prompt Type | Seed 0 | Seed 1 | Seed 2 |
+| --- | --- | ---: | ---: | ---: |
+| Exp-00 (Baseline) | Neutral prompt only | 3.429 (`n=1831`) | 3.372 (`n=1831`) | 3.371 (`n=1831`) |
+| Exp-01 | Neutral prompt only | 3.004 (`n=1831`) | 3.001 (`n=1831`) | 3.023 (`n=1831`) |
+| Exp-02 | Neutral prompt only | 2.957 (`n=1831`) | 2.939 (`n=1831`) | 2.999 (`n=1831`) |
+| Exp-03 | Neutral prompt only | 2.602 (`n=1831`) | 2.602 (`n=1831`) | 2.587 (`n=1831`) |
+
+
+Notes:
+- Exp-01 -> LLM Prompt Rewrite (No KG)
+- Exp-02 -> Extracted KG + LLM Prompt Rewrite
+- Exp-03 ->  Ground Truth KG + LLM Prompt Rewrite
+- Results are computed on the shared subset across `exp_00`, `exp_01`, `exp_02`, and `exp_03`.
+- The shared subset contains 1831 cases for each seed, i.e., 5493 `(case, seed)` samples in total.
+- `Exp-00` is treated as the baseline.
+- All configurations use neutral prompts only for image generation.
+
+## Ziyang end

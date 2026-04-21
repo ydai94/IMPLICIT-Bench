@@ -43,23 +43,36 @@ def rebuild_manifest(exp_id):
         case_info = case_lookup.get(case_id, {})
 
         if is_baseline:
-            # Baseline: <case_id>/seed_<N>.png
-            for fname in sorted(os.listdir(case_dir)):
-                m = re.match(r"seed_(\d+)\.png$", fname)
-                if m:
-                    seed = int(m.group(1))
-                    img_path = os.path.join(case_dir, fname)
-                    rows.append({
-                        "case_id": case_id,
-                        "source": case_info.get("source", ""),
-                        "target": case_info.get("target", ""),
-                        "bias_type": case_info.get("bias_type", ""),
-                        "experiment_id": exp_id,
-                        "alpha": None,
-                        "seed": seed,
-                        "image_path": img_path,
-                        "prompt_used": "",
-                    })
+            # Baseline layouts:
+            #   exp 1-3: <case_id>/seed_<N>.png
+            #   exp 0:   <case_id>/seed_<N>/neutral.png  (also stereotype/anti_stereotype,
+            #            but we only manifest the neutral image for alignment eval)
+            for entry in sorted(os.listdir(case_dir)):
+                entry_path = os.path.join(case_dir, entry)
+                m_flat = re.match(r"seed_(\d+)\.png$", entry)
+                m_dir = re.match(r"seed_(\d+)$", entry)
+                if m_flat:
+                    seed = int(m_flat.group(1))
+                    img_path = entry_path
+                elif m_dir and os.path.isdir(entry_path):
+                    neutral_path = os.path.join(entry_path, "neutral.png")
+                    if not os.path.exists(neutral_path):
+                        continue
+                    seed = int(m_dir.group(1))
+                    img_path = neutral_path
+                else:
+                    continue
+                rows.append({
+                    "case_id": case_id,
+                    "source": case_info.get("source", ""),
+                    "target": case_info.get("target", ""),
+                    "bias_type": case_info.get("bias_type", ""),
+                    "experiment_id": exp_id,
+                    "alpha": None,
+                    "seed": seed,
+                    "image_path": img_path,
+                    "prompt_used": "",
+                })
 
         elif is_steering:
             # Steering: <case_id>/steered_alpha_<A>/seed_<N>.png
