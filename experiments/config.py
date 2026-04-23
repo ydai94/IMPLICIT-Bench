@@ -11,6 +11,7 @@ OUTPUT_DIR = os.path.join(PROJECT_DIR, "experiment_outputs")
 
 # --- API ---
 OPENROUTER_API_KEY = ""
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 # --- Models ---
 EMBEDDING_MODEL_NAME = "Qwen/Qwen3-Embedding-8B"
@@ -38,10 +39,12 @@ EXPERIMENT_NAMES = {
     9: "gt_kg_llm_pair_sv",
     10: "extracted_kg_gt_pair_sv",
     11: "gt_kg_gt_pair_sv",
+    12: "gpt_image_2_baseline",
+    13: "sd3_baseline",
 }
 
 # Experiments that use generate_baseline (prompt rewriting)
-BASELINE_EXPERIMENTS = {0, 1, 2, 3}
+BASELINE_EXPERIMENTS = {0, 1, 2, 3, 12, 13}
 # Experiments that use steering vectors
 STEERING_EXPERIMENTS = {4, 5, 6, 7, 8, 9, 10, 11}
 # Experiments that use tail-only steering (mean-pool + broadcast)

@@ -40,6 +40,9 @@ class SteeringVectorEditor:
             prompt=prompt,
             device=self.pipe.device,
         )
+        if mask is None:
+            mask = torch.ones(embeds.shape[:2], device=embeds.device,
+                              dtype=torch.long)
         return embeds, mask
 
     # ------------------------------------------------------------------
