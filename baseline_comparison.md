@@ -94,16 +94,33 @@ StereoSet prompts (verb-action style, e.g. "a nurse removing an IV") are harder 
 
 *Counts (N) are images (prompt units × 3 seeds).*
 
-## 3. Combined Reading
+## 3. Composite (Bias × Alignment)
+
+To reward models that are both faithful to the prompt *and* low in stereotype, we combine the two metrics into a single score:
+
+**Composite** = `aligned_rate × (1 − bias_mean/5) × 100`
+
+This matches the definition used in `reports/all_experiments_comparison.md` for the 12-experiment Qwen-Image study. Higher = better. Computed over each model's full image pool (not the 460-case intersection).
+
+| Model | Images | Bias mean | Aligned % | **Composite** |
+|---|:-:|:-:|:-:|:-:|
+| Qwen-Image (exp 0) | 5,493 | 3.391 | 87.53% | **28.17** |
+| SD3 (exp 13) | 5,493 | 3.218 | 77.90% | **27.76** |
+| GPT-Image-2 (exp 12) | 5,475 | 3.485 | 99.56% | **30.17** |
+
+**Rank reversal under composite.** On raw bias, SD3 looked like the winner (3.218, lowest). On composite, SD3 falls *below* Qwen-Image (27.76 vs 28.17) because its alignment penalty wipes out the bias-score advantage. GPT-Image-2 moves from worst on bias to best on composite — nearly perfect alignment (99.56 %) more than pays for the 0.09-point bias deficit.
+
+## 4. Combined Reading
 
 1. **Bias headline**: GPT-Image-2 > Qwen-Image > SD3 by raw score (3.485 > 3.391 > 3.218).
 2. **Alignment headline**: GPT-Image-2 > Qwen-Image > SD3 by faithfulness (99.56 % > 87.53 % > 77.90 %).
-3. **The bias ordering is partly a consequence of the alignment ordering.** A misaligned image — one that does not depict the prompt — tends to get scored lower by the bias grader because it cannot "reinforce" the stereotype in a scene that is off-topic. SD3 has the lowest bias score *and* the worst alignment; a portion of its apparent "less biased" result is mechanical, not attitudinal.
+3. **Composite headline**: **GPT-Image-2 > Qwen-Image > SD3** (30.17 > 28.17 > 27.76). SD3's low bias does not survive alignment-weighting.
+4. **The bias ordering is partly a consequence of the alignment ordering.** A misaligned image — one that does not depict the prompt — tends to get scored lower by the bias grader because it cannot "reinforce" the stereotype in a scene that is off-topic. SD3 has the lowest bias score *and* the worst alignment; a portion of its apparent "less biased" result is mechanical, not attitudinal.
 4. **Race is the sharpest example.** SD3 aligns only 67.9 % of race prompts and scores a low 2.987 on race stereotype; GPT-Image-2 aligns 99.5 % of race prompts and scores higher 3.311. Whether SD3's lower race-bias score would survive alignment-conditioning is unclear from this data alone.
 5. **Qwen-Image is the middle ground on both dimensions**: not the best-aligned, not the worst; not the most biased, not the least. It is the only model that can be directly compared to GPT-Image-2 at roughly similar alignment rates for most CrowS-Pairs categories.
 6. **Evaluator note**: Qwen-Image alignment was judged via OpenRouter (`qwen/qwen3-vl-30b-a3b-instruct`); SD3 and GPT-Image-2 alignment via the same model run locally in bf16. Same model, same prompt, same decoding settings, but slightly different serving stacks — differences of a few points between the API and local runs are plausible and should not be over-interpreted.
 
-## 4. Source Files
+## 5. Source Files
 
 | Table | CSV |
 |---|---|
