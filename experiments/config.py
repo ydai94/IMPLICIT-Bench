@@ -41,10 +41,11 @@ EXPERIMENT_NAMES = {
     11: "gt_kg_gt_pair_sv",
     12: "gpt_image_2_baseline",
     13: "sd3_baseline",
+    14: "nano_banana_2_baseline",
 }
 
 # Experiments that use generate_baseline (prompt rewriting)
-BASELINE_EXPERIMENTS = {0, 1, 2, 3, 12, 13}
+BASELINE_EXPERIMENTS = {0, 1, 2, 3, 12, 13, 14}
 # Experiments that use steering vectors
 STEERING_EXPERIMENTS = {4, 5, 6, 7, 8, 9, 10, 11}
 # Experiments that use tail-only steering (mean-pool + broadcast)
