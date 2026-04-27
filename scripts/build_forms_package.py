@@ -98,16 +98,34 @@ def resolve_source_path(row, split_lookup, images_base, condition, seed):
 # KG claim text
 # ---------------------------------------------------------------------------
 
-def kg_claim_sentence(target, stereotype_tails, anti_tails):
-    target = str(target).strip()
+def humanize_relation(rel):
+    if rel is None or (isinstance(rel, float) and pd.isna(rel)):
+        return ""
+    s = str(rel).replace("_", " ").strip()
+    # Strip KG-style prefixes ("has_X", "is_X") that read as filler when the
+    # relation is dropped into a natural-language clause.
+    for prefix in ("has ", "is "):
+        if s.startswith(prefix):
+            s = s[len(prefix):]
+    return s
+
+
+def kg_claim_sentence(head, stereotype_tails, anti_tails):
+    # Build a natural-language claim from the KG triple. We use ``head`` (not
+    # ``target``) because in CrowS-Pairs ``target`` is the bias-group label
+    # (e.g. "woman") and reusing it as the subject produces broken sentences.
+    # The "links X with Y" frame avoids subject-verb agreement issues that
+    # plague heads of varying number/animacy ("Persian people are…" vs.
+    # "Norway is…" vs. "coal mine is…").
+    head = str(head).strip()
     stereo = str(stereotype_tails).strip()
     anti = str(anti_tails).strip() if anti_tails and not pd.isna(anti_tails) else ""
     if anti and anti.lower() != stereo.lower():
         return (
-            f"In society, {target} are commonly stereotyped as "
-            f"\"{stereo}\" rather than \"{anti}\"."
+            f"A common stereotype links {head} with \"{stereo}\" rather "
+            f"than with \"{anti}\"."
         )
-    return f"In society, {target} are commonly stereotyped as \"{stereo}\"."
+    return f"A common stereotype links {head} with \"{stereo}\"."
 
 
 # ---------------------------------------------------------------------------
@@ -262,7 +280,7 @@ def main():
 
     for sec_idx, (_, case) in enumerate(sampled.iterrows(), start=1):
         kg_text = kg_claim_sentence(
-            case["target"], case["stereotype_tails"], case["anti_stereotype_tails"],
+            case["head"], case["stereotype_tails"], case["anti_stereotype_tails"],
         )
 
         # KG-validity manifest row (sub_q = 1, no image)

@@ -2,9 +2,17 @@
 .env
 .env.*
 
+# OAuth secrets for create_google_form_api.py
+scripts/credentials.json
+scripts/token.json
+
 # Generated images and experiment outputs
 experiment_outputs/
 plots/
+
+# Human eval image bundles (large; regenerated from manifest)
+data/human_eval/images/
+data/human_eval/images.zip
 
 # Cache (only embeddings are large; track the rest)
 cache/embeddings/
