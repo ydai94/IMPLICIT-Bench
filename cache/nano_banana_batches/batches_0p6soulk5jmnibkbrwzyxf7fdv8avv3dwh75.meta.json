@@ -1,0 +1,12 @@
+{
+  "batch_name": "batches/0p6soulk5jmnibkbrwzyxf7fdv8avv3dwh75",
+  "input_file": "files/7ekuyip0lhim",
+  "custom_map": {
+    "000e68d7a98bd3b678047734f980cd13__seed_0": "/data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_14_nano_banana_2_baseline/000e68d7a98bd3b678047734f980cd13/seed_0.png",
+    "000e68d7a98bd3b678047734f980cd13__seed_1": "/data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_14_nano_banana_2_baseline/000e68d7a98bd3b678047734f980cd13/seed_1.png",
+    "000e68d7a98bd3b678047734f980cd13__seed_2": "/data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_14_nano_banana_2_baseline/000e68d7a98bd3b678047734f980cd13/seed_2.png",
+    "003c7b6f877317c56a05214ee2cde404__seed_0": "/data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_14_nano_banana_2_baseline/003c7b6f877317c56a05214ee2cde404/seed_0.png",
+    "003c7b6f877317c56a05214ee2cde404__seed_1": "/data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_14_nano_banana_2_baseline/003c7b6f877317c56a05214ee2cde404/seed_1.png",
+    "003c7b6f877317c56a05214ee2cde404__seed_2": "/data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_14_nano_banana_2_baseline/003c7b6f877317c56a05214ee2cde404/seed_2.png"
+  }
+}

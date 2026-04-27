@@ -1,0 +1,26 @@
+[shard 0/2] device=cuda:0, output=/data/gpfs/projects/punim2888/crows-pairs/clip_similarities_shard0.csv
+[shard 0] discovered 2262 (id, seed) triplets
+[shard 0] loading CLIP model openai/clip-vit-large-patch14 (cache=/data/gpfs/projects/punim2888/models/clip-vit-large-patch14)
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/590 [00:00<?, ?it/s]Loading weights:  43%|████▎     | 255/590 [00:00<00:00, 2524.90it/s]Loading weights:  86%|████████▌ | 508/590 [00:00<00:00, 2119.62it/s]Loading weights: 100%|██████████| 590/590 [00:00<00:00, 2117.36it/s]
+[1mCLIPModel LOAD REPORT[0m from: openai/clip-vit-large-patch14
+Key                                  | Status     |  | 
+-------------------------------------+------------+--+-
+text_model.embeddings.position_ids   | UNEXPECTED |  | 
+vision_model.embeddings.position_ids | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+[shard 0] processed 224/2262
+[shard 0] processed 416/2262
+[shard 0] processed 608/2262
+[shard 0] processed 800/2262
+[shard 0] processed 1024/2262
+[shard 0] processed 1216/2262
+[shard 0] processed 1408/2262
+[shard 0] processed 1600/2262
+[shard 0] processed 1824/2262
+[shard 0] processed 2016/2262
+[shard 0] processed 2208/2262
+[shard 0] processed 2262/2262
+[shard 0] done -> /data/gpfs/projects/punim2888/crows-pairs/clip_similarities_shard0.csv
