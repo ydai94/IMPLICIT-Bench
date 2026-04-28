@@ -8,7 +8,7 @@ Mean bias scores on Qwen-Image generated images, comparing the full benchmark (*
 - Image-level rows are deduplicated on `(id, seed, image_type)` before averaging.
 
 Sources:
-- Pre-filter Qwen3-VL: `stereoset/image_bias_eval_qwen3vl_results_all.csv`, `crows-pairs/image_bias_eval_qwen3vl_results_part*.csv`
+- Pre-filter Qwen3-VL: `stereoset/image_bias_eval_qwen3vl_results_all.csv`, `crows-pairs/image_bias_eval_qwen3vl_results_part{1..5}.csv` (`part5` added 2026-04-28: OpenRouter Qwen3-VL scores for the 438 CrowS-Pairs seed-0 cases that the local-Qwen run skipped, same model `qwen/qwen3-vl-30b-a3b-instruct`)
 - Pre-filter Gemma-4:  `stereoset/image_bias_eval_gemma4_results_all.csv`,  `crows-pairs/image_bias_eval_gemma4_results_part*.csv`
 - Pre-filter CLIP: `stereoset/clip_analysis/clip_similarities.csv` (StereoSet) and `crows-pairs/clip_similarities.csv` (CrowS-Pairs, computed in this run via `stereoimage/scripts/run_clip_crowspairs_raw.py` on 2 GPUs)
 - Post-filter (lean_stereotype): `stereoimage/data/merged_all.csv`
@@ -21,9 +21,9 @@ Sources:
 
 | Set | Units | Image rows | Neutral | Stereotype | Anti-stereo | Bias amp (S-N) | Total sep (S-A) |
 |-----|:-----:|:----------:|:-------:|:----------:|:-----------:|:--------------:|:---------------:|
-| Pre-filter (all)  | 4,705 | 37,821 | 1.692 | 3.829 | 0.486 | +2.137 | +3.343 |
-| Post-filter (lean_stereotype) | 1,831 | 16,479 | 3.398 | 4.222 | 0.696 | +0.824 | +3.527 |
-| **Δ (post -- pre)** | -- | -- | **+1.706** | **+0.394** | **+0.210** | **-1.313** | **+0.184** |
+| Pre-filter (all)  | 4,705 | 40,854 | 1.756 | 3.817 | 0.542 | +2.061 | +3.275 |
+| Post-filter (lean_stereotype) | 1,831 | 16,479 | 3.402 | 4.202 | 0.800 | +0.801 | +3.402 |
+| **Δ (post -- pre)** | -- | -- | **+1.646** | **+0.385** | **+0.258** | **-1.260** | **+0.127** |
 
 ### Gemma-4
 
@@ -51,10 +51,10 @@ Sources:
 
 | Dataset | Set | Units | Neutral | Stereotype | Anti-stereo | Bias amp | Total sep |
 |---------|-----|:-----:|:-------:|:----------:|:-----------:|:--------:|:---------:|
-| StereoSet | Pre-filter | 3,197 | 1.919 | 3.971 | 0.605 | +2.052 | +3.366 |
-| StereoSet | Post-filter | 1,393 | 3.455 | 4.224 | 0.780 | +0.769 | +3.444 |
-| CrowS-Pairs | Pre-filter | 1,508 | 0.970 | 3.376 | 0.108 | +2.406 | +3.268 |
-| CrowS-Pairs | Post-filter | 438 | 3.129 | 4.215 | 0.293 | +1.086 | +3.921 |
+| StereoSet | Pre-filter | 3,197 | 1.926 | 3.947 | 0.611 | +2.021 | +3.337 |
+| StereoSet | Post-filter | 1,393 | 3.455 | 4.224 | 0.780 | +0.768 | +3.444 |
+| CrowS-Pairs | Pre-filter | 1,508 | 1.268 | 3.442 | 0.345 | +2.175 | +3.097 |
+| CrowS-Pairs | Post-filter | 438 | 3.230 | 4.134 | 0.865 | +0.904 | +3.269 |
 
 ### Gemma-4
 
@@ -78,6 +78,6 @@ Sources:
 
 ## 3. Notes
 
-- **Why neutral rises after filtering.** The `lean_stereotype` filter selects the prompt units whose neutral generation already drifts toward the stereotype, so neutral mean climbs by ~1.4--1.7 points across both VLM evaluators. This compresses bias-amp (S-N) but the absolute stereotype score and total separation (S-A) stay roughly stable -- the filter raises the floor (neutral) more than the ceiling (stereotype).
-- **Pre-filter coverage gaps.** CrowS-Pairs Qwen-VL only has seeds 1 and 2; Gemma covers 0--2. StereoSet Gemma raw has extra seeds 3--9 from re-runs (kept after dedup). Raw CLIP for CrowS-Pairs was computed in this run (1,508 units × 3 seeds = 4,524 triplets).
+- **Why neutral rises after filtering.** The `lean_stereotype` filter selects the prompt units whose neutral generation already drifts toward the stereotype, so neutral mean climbs by +1.65 (Qwen3-VL) and +1.39 (Gemma-4) points after filtering. This compresses bias-amp (S-N) but the absolute stereotype score and total separation (S-A) stay roughly stable -- the filter raises the floor (neutral) more than the ceiling (stereotype).
+- **Pre-filter coverage and evaluator note.** Qwen-VL pre-filter rows now combine the original local Qwen3-VL run (CrowS-Pairs seeds 1+2 from `crows-pairs/image_bias_eval_qwen3vl_results_part{1..4}.csv`; StereoSet seeds 0--2 from `stereoset/image_bias_eval_qwen3vl_results_all.csv`) with OpenRouter Qwen3-VL scores added on 2026-04-28 to fill the 438 CrowS-Pairs seed-0 gap (`...part5.csv`) and 3 StereoSet neutral-image NaNs. Both runs use `qwen/qwen3-vl-30b-a3b-instruct`; the combined pool is treated as a single evaluator. Gemma covers 0--2 directly. StereoSet Gemma raw has extra seeds 3--9 from re-runs (kept after dedup). Raw CLIP for CrowS-Pairs was computed in this run (1,508 units × 3 seeds = 4,524 triplets).
 - **Pre-filter universe size.** 4,705 prompt units total (3,197 StereoSet + 1,508 CrowS-Pairs) vs 1,831 in the lean_stereotype subset -- i.e., the filter retains ~39% of units (44% of StereoSet, 29% of CrowS-Pairs).

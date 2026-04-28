@@ -1,0 +1,105 @@
+
+============================================================
+  StereoSet
+============================================================
+  Samples: 4179, unique cases: 1393
+    sim(neutral, stereo): mean=0.8172, std=0.1457, median=0.8521
+    sim(neutral, anti): mean=0.7653, std=0.1522, median=0.7925
+    sim(stereo, anti): mean=0.7633, std=0.1471, median=0.7861
+
+    Neutral lean stereotype: 2897/4179 (69.3%)
+    Mean gap: 0.051908, t=26.75, p=1.26e-145, Cohen's d=0.4138
+
+    By bias type:
+      gender (n=651): gap=+0.0674, lean_S=73.1%
+      profession (n=2094): gap=+0.0506, lean_S=71.1%
+      race (n=1284): gap=+0.0459, lean_S=64.8%
+      religion (n=150): gap=+0.0543, lean_S=66.7%
+
+============================================================
+  CrowS-Pairs
+============================================================
+  Samples: 1314, unique cases: 438
+    sim(neutral, stereo): mean=0.8780, std=0.1011, median=0.9077
+    sim(neutral, anti): mean=0.8499, std=0.1153, median=0.8811
+    sim(stereo, anti): mean=0.8428, std=0.1156, median=0.8735
+
+    Neutral lean stereotype: 822/1314 (62.6%)
+    Mean gap: 0.028073, t=11.53, p=2.25e-29, Cohen's d=0.3181
+
+    By bias type:
+      age (n=111): gap=+0.0078, lean_S=55.9%
+      disability (n=54): gap=-0.0130, lean_S=51.9%
+      gender (n=459): gap=+0.0367, lean_S=73.2%
+      nationality (n=105): gap=+0.0320, lean_S=54.3%
+      physical-appearance (n=42): gap=+0.0739, lean_S=76.2%
+      race-color (n=198): gap=+0.0208, lean_S=57.1%
+      religion (n=51): gap=+0.0471, lean_S=60.8%
+      sexual-orientation (n=75): gap=-0.0025, lean_S=42.7%
+      socioeconomic (n=219): gap=+0.0323, lean_S=59.8%
+
+============================================================
+  CROSS-DATASET COMPARISON
+============================================================
+    sim(neutral, stereo): KS=0.1851, p=2.02e-30
+    sim(neutral, anti): KS=0.2632, p=1.99e-61
+    sim(stereo, anti): KS=0.2539, p=3.62e-57
+
+    Overlapping bias types: ['gender', 'race-color', 'religion']
+      gender: SS gap=+0.0674 (n=651), CP gap=+0.0367 (n=459), same dir: YES
+      race-color: SS gap=+0.0459 (n=1284), CP gap=+0.0208 (n=198), same dir: YES
+      religion: SS gap=+0.0543 (n=150), CP gap=+0.0471 (n=51), same dir: YES
+
+    StereoSet: mean gap=0.051908, Cohen's d=0.4138
+
+    CrowS-Pairs: mean gap=0.028073, Cohen's d=0.3181
+
+============================================================
+  THREE-WAY AGREEMENT: CLIP + Qwen-VL + Gemma4
+============================================================
+
+    Total samples: 5493
+
+    Method       Lean S%        Mean          t             p        d
+    ----------  --------  ----------  ---------  ------------  -------
+    CLIP           67.7%     +0.0462     +29.01     2.92e-172   +0.391
+    Qwen-VL        71.5%     +1.7708     +62.93      0.00e+00   +0.849
+    Gemma4         48.7%     +0.7430     +21.65     8.44e-100   +0.292
+
+    All 3 agree lean stereo: 1898/5493 (34.6%)
+    At least 2 agree:        3551/5493 (64.6%)
+
+    Case-level (n=1831):
+      CLIP      : lean_S=70.9%, mean=+0.0462, d=+0.485
+      Qwen-VL   : lean_S=85.2%, mean=+1.7708, d=+1.108
+      Gemma4    : lean_S=56.7%, mean=+0.7426, d=+0.346
+      All 3 agree: 760/1831 (41.5%)
+
+    Pairwise Pearson correlations (sample-level):
+      CLIP vs Qwen-VL     : Pearson r=+0.2161 (p=4.88e-59), Spearman r=+0.2647 (p=1.00e-88)
+      CLIP vs Gemma4      : Pearson r=+0.2532 (p=4.49e-81), Spearman r=+0.3057 (p=4.23e-119)
+      Qwen-VL vs Gemma4   : Pearson r=+0.4445 (p=1.04e-264), Spearman r=+0.4675 (p=2.68e-296)
+
+    Case-level Pearson correlations:
+      CLIP vs Qwen-VL     : r=+0.2882 (p=2.29e-36)
+      CLIP vs Gemma4      : r=+0.3093 (p=6.78e-42)
+      Qwen-VL vs Gemma4   : r=+0.4918 (p=4.12e-112)
+
+    bias_type                     n   CLIP%   Qwen%    Gem%   CLIP_d   Qwen_d    Gem_d
+    ------------------------- -----  ------  ------  ------  -------  -------  -------
+    age                         111   55.9%   64.0%   37.8%   +0.075   +0.771   +0.045
+    disability                   54   51.9%   44.4%   13.0%   -0.201   +0.449   -0.089
+    gender                     1110   73.2%   74.2%   54.7%   +0.509   +0.858   +0.419
+    nationality                 105   54.3%   54.3%   20.0%   +0.341   +0.577   -0.371
+    physical-appearance          42   76.2%   54.8%   69.0%   +0.815   +0.621   +0.987
+    profession                 2094   71.1%   75.6%   55.3%   +0.414   +1.052   +0.486
+    race                       1284   64.8%   73.3%   45.1%   +0.356   +0.839   +0.150
+    race-color                  198   57.1%   62.1%   47.5%   +0.294   +0.436   +0.279
+    religion                    201   65.2%   67.7%   30.8%   +0.398   +0.831   -0.067
+    sexual-orientation           75   42.7%   54.7%   21.3%   -0.031   +0.509   -0.033
+    socioeconomic               219   59.8%   48.4%   26.9%   +0.290   +0.499   -0.216
+
+    VLM score agreement (Qwen vs Gemma):
+      stereotype          : Pearson r=+0.6296 (n=5492)
+      neutral             : Pearson r=+0.5907 (n=5492)
+      anti-stereotype     : Pearson r=+0.5796 (n=5493)

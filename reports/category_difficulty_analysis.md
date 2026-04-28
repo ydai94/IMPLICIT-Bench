@@ -65,23 +65,23 @@ three tiers).
 
 | Rank | Bias Type | N | Hedges' g [95% CI] | S − N | S − A | Judge Agr. | Tier |
 |:---:|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| 1 | age | 37 | 2.60 [1.93, 3.72] | +1.07 | 3.22 | 68.7% | Strong |
-| 2 | race-color | 66 | 2.48 [2.02, 3.13] | +0.99 | 3.20 | 72.6% | Strong |
-| 3 | gender | 370 | 2.31 [2.11, 2.56] | +0.75 | 3.20 | 78.7% | Strong |
-| 4 | race | 428 | 2.24 [2.06, 2.43] | +1.00 | 3.14 | 83.4% | Strong |
+| 1 | age | 37 | 2.38 [1.76, 3.35] | +1.02 | 3.09 | 68.7% | Strong |
+| 2 | race-color | 66 | 2.30 [1.88, 2.86] | +0.91 | 3.10 | 72.6% | Strong |
+| 3 | race | 428 | 2.24 [2.06, 2.43] | +1.00 | 3.14 | 83.4% | Strong |
+| 4 | gender | 370 | 2.24 [2.06, 2.46] | +0.73 | 3.14 | 78.7% | Strong |
 | 5 | profession | 698 | 2.03 [1.89, 2.16] | +0.65 | 2.83 | 80.5% | Strong |
-| 6 | socioeconomic | 73 | 1.99 [1.60, 2.46] | +1.45 | 2.82 | 80.4% | Medium |
-| 7 | nationality | 35 | 1.85 [1.36, 2.51] | +1.30 | 2.52 | 76.0% | Medium |
-| 8 | religion | 67 | 1.72 [1.42, 2.09] | +1.00 | 2.76 | 79.4% | Medium |
-| 9 | sexual-orientation | 25 | 1.23 [1.03, 1.51] | +0.79 | 1.87 | 71.2% | Weak |
-| 10 | physical-appearance | 14 | 1.22 [0.57, 2.36] | +0.57 | 2.23 | 56.5% | Weak |
-| 11 | disability | 18 | 0.77 [0.49, 1.20] | +1.10 | 1.34 | 70.0% | Weak |
+| 6 | socioeconomic | 73 | 1.82 [1.48, 2.22] | +1.34 | 2.62 | 80.4% | Medium |
+| 7 | religion | 67 | 1.67 [1.37, 2.03] | +0.97 | 2.69 | 79.4% | Medium |
+| 8 | nationality | 35 | 1.58 [1.14, 2.09] | +1.16 | 2.29 | 76.0% | Medium |
+| 9 | physical-appearance | 14 | 1.22 [0.59, 2.23] | +0.49 | 2.19 | 56.5% | Weak |
+| 10 | sexual-orientation | 25 | 1.05 [0.85, 1.30] | +0.74 | 1.68 | 71.2% | Weak |
+| 11 | disability | 18 | 0.72 [0.46, 1.11] | +1.05 | 1.23 | 70.0% | Weak |
 
 ![Per-category difficulty ranking](../plots/category_difficulty_ranking.png)
 
 ## Tier Interpretation
 
-### Strong (g ≥ 2.0): age, race-color, gender, race, profession
+### Strong (g ≥ 2.0): age, race-color, race, gender, profession
 
 These categories have **visually concrete cues** that text-to-image models
 encode reliably: hair / posture / wrinkles for age, skin tone for race
@@ -96,7 +96,7 @@ with wider CIs. Note that the supervisor's intuition that
 **"gender / profession → strong signal"** holds — they sit in the Strong
 tier — though they are not the very top of the ranking.
 
-### Medium (1.5 ≤ g < 2.0): socioeconomic, nationality, religion
+### Medium (1.5 ≤ g < 2.0): socioeconomic, religion, nationality
 
 Partially expressible: socioeconomic status reads through clothing
 condition, setting, and accessories; nationality through dress and
@@ -104,11 +104,11 @@ backdrop; religion through religious garments (hijab, kippah, robes).
 But the cues are more ambiguous than for the Strong tier — a "wealthy"
 image and a "working-class" image overlap in scoring more than a "male"
 and "female" image do. Notably, these three categories have the **highest
-S–N values** (+1.00 to +1.45), meaning the trigger does shift the model
+S–N values** (+0.97 to +1.34), meaning the trigger does shift the model
 substantially from neutral, but the anti-stereotype trigger doesn't push
 it back as far, compressing the S–A separation.
 
-### Weak (g < 1.5): sexual-orientation, physical-appearance, disability
+### Weak (g < 1.5): physical-appearance, sexual-orientation, disability
 
 These categories are **the most difficult to evaluate** with this
 benchmark — the dataset's measurement instrument has limited headroom
@@ -116,11 +116,10 @@ in them:
 
 - **Sexual-orientation** has no canonical visual marker. The model has
   some priors (clothing styles, settings) but the Qwen / Gemma evaluators
-  disagree on whether those priors fire (qwen-only g = 7.25, gemma-only
-  g = 0.35 — see cross-evaluator note below).
+  disagree on whether those priors fire (see cross-evaluator note below).
 - **Physical-appearance** depends on context the model often elides; CIs
   are very wide (n = 14).
-- **Disability is the clearest "hard" category** (g = 0.77, the only
+- **Disability is the clearest "hard" category** (g = 0.72, the only
   category whose CI does not exceed 1.5). Many forms of disability are
   not visible in static frames — invisible disabilities, neurodivergence,
   chronic illness — and where assistive devices appear (wheelchairs,
@@ -137,15 +136,13 @@ in them:
 ## Cross-Evaluator Stability
 
 Spearman ρ between the per-category g computed from Qwen3-VL alone
-versus Gemma-4 alone is **0.49** — a moderate correlation, not strong.
-The ranking at the **tier level** is robust (both evaluators rank
-disability and physical-appearance in the bottom 3, gender and race in
-the top 5), but the **within-tier ordering** depends on the evaluator.
-Most evaluator divergence is concentrated in the small-n CrowS-Pairs
-categories (sexual-orientation, age, nationality, race-color), where
-~25–66 units are pooled across only 2 evaluators × 3 seeds. The pooled
-g remains the most defensible headline because it averages out
-evaluator-specific score-scale differences.
+versus Gemma-4 alone is **0.88** — a strong correlation, with the two
+evaluators substantially agreeing on the relative difficulty of
+categories. The ranking is robust at both the **tier level** (both
+evaluators rank disability and physical-appearance in the bottom 3,
+gender and race in the top 5) and largely at the within-tier level.
+The pooled g remains the most defensible headline because it averages
+out evaluator-specific score-scale differences.
 
 ## Caveats
 
@@ -163,9 +160,9 @@ evaluator-specific score-scale differences.
   This selection biases the absolute g values upward — the unfiltered
   CrowS-Pairs / StereoSet pool would show smaller effects. The
   *relative* ranking across categories is what matters here.
-- **Evaluator disagreement.** ρ = 0.49 between evaluators means the
-  exact ranking shifts under choice of judge. Tier assignments are
-  stable; per-rank claims are not.
+- **Evaluator agreement.** ρ = 0.88 between evaluators — the ranking is
+  largely consistent under choice of judge. Tier assignments are stable
+  and within-tier ordering is mostly preserved.
 - **Judge-agreement is prompt-text only.** It captures linguistic
   clarity of the bias category, not visual expressibility. Where
   judge-agreement and g diverge (e.g., physical-appearance has the
@@ -176,8 +173,8 @@ evaluator-specific score-scale differences.
 ## Summary
 
 The dataset shows **clear and graded variation in difficulty across
-bias categories**, spanning Hedges' g from 0.77 (disability) to 2.60
-(age) — a 3.4× range. The ranking aligns with the supervisor's
+bias categories**, spanning Hedges' g from 0.72 (disability) to 2.38
+(age) — a 3.3× range. The ranking aligns with the supervisor's
 intuition: gender and profession sit firmly in the Strong tier,
 disability is the lone Weak-tier outlier whose CI does not even reach
 the Strong cutoff. Categories that depend on **visually concrete cues**

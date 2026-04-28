@@ -35,8 +35,8 @@ from transformers import CLIPModel, CLIPProcessor
 BASE_DIR = "/data/gpfs/projects/punim2888"
 STEREOSET_IMAGE_BASE = os.path.join(BASE_DIR, "stereoset", "generated_images", "qwen_v5")
 CROWSPAIRS_IMAGE_BASE = os.path.join(BASE_DIR, "crows-pairs", "generated_images", "qwen")
-STEREOSET_CSV = os.path.join(BASE_DIR, "stereoimage", "lean_stereotype_union.csv")
-CROWSPAIRS_CSV = os.path.join(BASE_DIR, "stereoimage", "neutral_lean_stereotype.csv")
+STEREOSET_CSV = os.path.join(BASE_DIR, "stereoimage", "data", "lean_stereotype_union.csv")
+CROWSPAIRS_CSV = os.path.join(BASE_DIR, "stereoimage", "data", "neutral_lean_stereotype.csv")
 MODEL_NAME = "openai/clip-vit-large-patch14"
 MODEL_CACHE = os.path.join(BASE_DIR, "models", "clip-vit-large-patch14")
 SEEDS = range(3)
@@ -325,7 +325,7 @@ def per_dataset_analysis(df, dataset_name, output_dir, log):
     ax.legend()
     ax.grid(alpha=0.3)
     fig.tight_layout()
-    fig.savefig(os.path.join(output_dir, f"similarity_distributions_{dataset_name.lower()}.png"), dpi=150)
+    fig.savefig(os.path.join(output_dir, "plots", f"similarity_distributions_{dataset_name.lower()}.png"), dpi=150)
     plt.close(fig)
 
     if "bias_type" in df.columns:
@@ -338,7 +338,7 @@ def per_dataset_analysis(df, dataset_name, output_dir, log):
             ax.tick_params(axis="x", rotation=30)
         fig.suptitle(f"{dataset_name}: CLIP Similarity by Bias Type", fontsize=14)
         fig.tight_layout()
-        fig.savefig(os.path.join(output_dir, f"boxplot_by_bias_type_{dataset_name.lower()}.png"), dpi=150)
+        fig.savefig(os.path.join(output_dir, "plots", f"boxplot_by_bias_type_{dataset_name.lower()}.png"), dpi=150)
         plt.close(fig)
 
 
@@ -369,7 +369,7 @@ def cross_dataset_analysis(ss_df, cp_df, output_dir, log):
 
     fig.suptitle("Cross-Dataset: CLIP Similarity Distributions", fontsize=14)
     fig.tight_layout()
-    fig.savefig(os.path.join(output_dir, "cross_dataset_distribution_overlay.png"), dpi=150)
+    fig.savefig(os.path.join(output_dir, "plots", "cross_dataset_distribution_overlay.png"), dpi=150)
     plt.close(fig)
 
     # Bias-type gap comparison (overlapping types)
@@ -504,7 +504,7 @@ def three_way_analysis(combined, output_dir, log):
                     vmin=-1, vmax=1, mask=mask, ax=ax)
         ax.set_title("Lean Stereotype Benchmark: Correlation Heatmap")
         fig.tight_layout()
-        fig.savefig(os.path.join(output_dir, "correlation_heatmap.png"), dpi=150)
+        fig.savefig(os.path.join(output_dir, "plots", "correlation_heatmap.png"), dpi=150)
         plt.close(fig)
 
     # Three-method agreement bar chart by bias type
@@ -535,7 +535,7 @@ def three_way_analysis(combined, output_dir, log):
         ax.legend()
         ax.grid(alpha=0.3, axis="y")
         fig.tight_layout()
-        fig.savefig(os.path.join(output_dir, "three_way_agreement_by_bias_type.png"), dpi=150)
+        fig.savefig(os.path.join(output_dir, "plots", "three_way_agreement_by_bias_type.png"), dpi=150)
         plt.close(fig)
 
     return df
@@ -554,10 +554,11 @@ def main():
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    os.makedirs(args.output_dir, exist_ok=True)
+    os.makedirs(os.path.join(args.output_dir, "data"), exist_ok=True)
+    os.makedirs(os.path.join(args.output_dir, "plots"), exist_ok=True)
 
-    ss_clip_csv = os.path.join(args.output_dir, "clip_similarities_stereoset.csv")
-    cp_clip_csv = os.path.join(args.output_dir, "clip_similarities_crowspairs.csv")
+    ss_clip_csv = os.path.join(args.output_dir, "data", "clip_similarities_stereoset.csv")
+    cp_clip_csv = os.path.join(args.output_dir, "data", "clip_similarities_crowspairs.csv")
 
     # Phase 1: Discover lean_stereotype cases only
     print("Phase 1: Loading lean_stereotype IDs and discovering cases...")
@@ -599,7 +600,7 @@ def main():
     print("\nPhase 3: Loading VLM scores and merging...")
     qwen_ss_piv = pivot_vlm(pd.read_csv(QWEN_SS))
     gemma_ss_piv = pivot_vlm(pd.read_csv(GEMMA_SS))
-    qwen_cp_piv = pivot_vlm(load_vlm_parts(QWEN_CP_PATTERN))
+    qwen_cp_piv = pivot_vlm(load_vlm_parts(QWEN_CP_PATTERN, n_parts=5))
     gemma_cp_piv = pivot_vlm(load_vlm_parts(GEMMA_CP_PATTERN))
 
     ss_merged = merge_all(ss_clip_csv, STEREOSET_CSV, qwen_ss_piv, gemma_ss_piv,
@@ -610,9 +611,9 @@ def main():
     combined = pd.concat([ss_merged, cp_merged], ignore_index=True)
     print(f"  Combined: {len(combined)} samples (SS={len(ss_merged)}, CP={len(cp_merged)})")
 
-    ss_merged.to_csv(os.path.join(args.output_dir, "merged_stereoset.csv"), index=False)
-    cp_merged.to_csv(os.path.join(args.output_dir, "merged_crowspairs.csv"), index=False)
-    combined.to_csv(os.path.join(args.output_dir, "merged_all.csv"), index=False)
+    ss_merged.to_csv(os.path.join(args.output_dir, "data", "merged_stereoset.csv"), index=False)
+    cp_merged.to_csv(os.path.join(args.output_dir, "data", "merged_crowspairs.csv"), index=False)
+    combined.to_csv(os.path.join(args.output_dir, "data", "merged_all.csv"), index=False)
 
     if args.skip_plots:
         print("Skipping analysis (--skip-plots)")

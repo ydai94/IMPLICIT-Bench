@@ -40,9 +40,9 @@
 
 | Evaluator | Avg Neutral | Avg Stereotype | Avg Anti-Stereotype | Bias Amp (S-N) | Total Sep (S-A) |
 |-----------|:-----------:|:--------------:|:-------------------:|:--------------:|:---------------:|
-| Qwen3-VL | 3.377 (1.048) | 4.222 (0.852) | 0.664 (1.143) | +0.844 | 3.558 |
+| Qwen3-VL | 3.402 (1.020) | 4.202 (0.859) | 0.800 (1.139) | +0.800 | 3.402 |
 | Gemma-4 | 2.649 (1.591) | 3.482 (1.451) | 1.047 (1.431) | +0.833 | 2.435 |
-| **Combined** | **2.975 (1.244)** | **3.814 (1.109)** | **0.874 (1.198)** | **+0.839** | **2.940** |
+| **Combined** | **3.025 (1.190)** | **3.842 (1.067)** | **0.924 (1.181)** | **+0.817** | **2.919** |
 
 *Values in parentheses are standard deviations across 1,831 prompt units.*
 
@@ -50,12 +50,12 @@
 
 | Source | Evaluator | Avg Neutral | Avg Stereotype | Avg Anti-Stereo | Bias Amp (S-N) | Total Sep (S-A) |
 |--------|-----------|:-----------:|:--------------:|:---------------:|:--------------:|:---------------:|
-| StereoSet (n=1,393) | Qwen3-VL | 3.455 | 4.224 | 0.780 | +0.769 | 3.444 |
+| StereoSet (n=1,393) | Qwen3-VL | 3.455 | 4.224 | 0.780 | +0.768 | 3.444 |
 | | Gemma-4 | 2.781 | 3.556 | 1.142 | +0.775 | 2.413 |
-| | **Combined** | **3.117** | **3.890** | **0.961** | **+0.772** | **2.928** |
-| CrowS-Pairs (n=438) | Qwen3-VL | 3.129 | 4.215 | 0.293 | +1.086 | 3.921 |
+| | **Combined** | **3.118** | **3.890** | **0.961** | **+0.771** | **2.929** |
+| CrowS-Pairs (n=438) | Qwen3-VL | 3.230 | 4.134 | 0.865 | +0.904 | 3.269 |
 | | Gemma-4 | 2.230 | 3.248 | 0.742 | +1.018 | 2.505 |
-| | **Combined** | **2.522** | **3.574** | **0.596** | **+1.052** | **2.978** |
+| | **Combined** | **2.730** | **3.691** | **0.804** | **+0.961** | **2.887** |
 
 ---
 
@@ -65,16 +65,16 @@
 
 | Bias Type | Source | N | Avg Neutral | Avg Stereotype | Avg Anti-Stereo | Bias Amp (S-N) | Total Sep (S-A) |
 |-----------|--------|:-:|:-----------:|:--------------:|:---------------:|:--------------:|:---------------:|
-| Race-Color | CP | 66 | 2.792 | 4.106 | 0.061 | +1.314 | 4.045 |
-| Socioeconomic | CP | 73 | 2.918 | 4.123 | 0.603 | +1.205 | 3.521 |
-| Sexual Orientation | CP | 25 | 2.900 | 3.990 | 0.100 | +1.090 | 3.890 |
-| Age | CP | 37 | 3.223 | 4.264 | 0.122 | +1.041 | 4.142 |
-| Physical Appearance | CP | 14 | 3.286 | 4.321 | 0.821 | +1.036 | 3.500 |
-| Race | SS | 428 | 3.273 | 4.202 | 0.500 | +0.930 | 3.703 |
-| Nationality | CP | 35 | 2.957 | 3.857 | 0.400 | +0.900 | 3.457 |
-| Gender | SS | 370 | 3.446 | 4.292 | 0.468 | +0.846 | 3.824 |
-| Disability | CP | 18 | 2.833 | 3.667 | 1.111 | +0.833 | 2.556 |
-| Religion | SS | 67 | 3.637 | 4.408 | 0.993 | +0.771 | 3.415 |
+| Socioeconomic | CP | 73 | 3.005 | 4.068 | 1.178 | +1.064 | 2.890 |
+| Race-Color | CP | 66 | 2.957 | 3.990 | 0.414 | +1.033 | 3.576 |
+| Age | CP | 37 | 3.221 | 4.167 | 0.595 | +0.946 | 3.572 |
+| Race | SS | 428 | 3.273 | 4.202 | 0.500 | +0.929 | 3.703 |
+| Sexual Orientation | CP | 25 | 2.947 | 3.847 | 1.013 | +0.900 | 2.833 |
+| Disability | CP | 18 | 2.833 | 3.648 | 1.722 | +0.815 | 1.926 |
+| Gender | SS | 370 | 3.493 | 4.261 | 0.715 | +0.768 | 3.545 |
+| Nationality | CP | 35 | 3.048 | 3.810 | 1.124 | +0.762 | 2.686 |
+| Religion | SS | 67 | 3.682 | 4.398 | 1.172 | +0.716 | 3.226 |
+| Physical Appearance | CP | 14 | 3.452 | 4.167 | 1.167 | +0.714 | 3.000 |
 | Profession | SS | 698 | 3.546 | 4.236 | 0.947 | +0.691 | 3.289 |
 
 ### 2.2 Gemma-4 Evaluator
@@ -97,17 +97,17 @@
 
 | Bias Type | Source | N | Avg Neutral | Avg Stereotype | Avg Anti-Stereo | Bias Amp (S-N) | Total Sep (S-A) |
 |-----------|--------|:-:|:-----------:|:--------------:|:---------------:|:--------------:|:---------------:|
-| Socioeconomic | CP | 73 | 2.183 | 3.667 | 0.902 | +1.484 | 2.765 |
-| Nationality | CP | 35 | 1.657 | 2.995 | 0.610 | +1.338 | 2.386 |
-| Disability | CP | 18 | 1.815 | 2.972 | 1.796 | +1.157 | 1.176 |
-| Age | CP | 37 | 2.563 | 3.635 | 0.520 | +1.072 | 3.115 |
-| Religion | SS | 67 | 2.951 | 4.007 | 1.236 | +1.056 | 2.771 |
-| Race | SS | 428 | 2.880 | 3.883 | 0.744 | +1.003 | 3.139 |
-| Race-Color | CP | 66 | 2.485 | 3.451 | 0.361 | +0.966 | 3.090 |
-| Gender | SS | 370 | 3.104 | 3.857 | 0.649 | +0.754 | 3.208 |
-| Sexual Orientation | CP | 25 | 1.647 | 2.387 | 0.793 | +0.740 | 1.593 |
-| Profession | SS | 698 | 3.263 | 3.910 | 1.084 | +0.647 | 2.825 |
-| Physical Appearance | CP | 14 | 2.940 | 3.512 | 1.405 | +0.571 | 2.107 |
+| Socioeconomic | CP | 73 | 2.397 | 3.737 | 1.114 | +1.340 | 2.623 |
+| Nationality | CP | 35 | 2.038 | 3.200 | 0.910 | +1.162 | 2.290 |
+| Disability | CP | 18 | 2.083 | 3.130 | 1.898 | +1.046 | 1.231 |
+| Age | CP | 37 | 2.734 | 3.750 | 0.658 | +1.016 | 3.092 |
+| Race | SS | 428 | 2.881 | 3.883 | 0.744 | +1.002 | 3.139 |
+| Religion | SS | 67 | 3.036 | 4.007 | 1.318 | +0.971 | 2.689 |
+| Race-Color | CP | 66 | 2.658 | 3.564 | 0.462 | +0.907 | 3.102 |
+| Sexual Orientation | CP | 25 | 1.987 | 2.730 | 1.050 | +0.743 | 1.680 |
+| Gender | SS | 370 | 3.167 | 3.896 | 0.754 | +0.729 | 3.141 |
+| Profession | SS | 698 | 3.263 | 3.910 | 1.084 | +0.647 | 2.826 |
+| Physical Appearance | CP | 14 | 3.131 | 3.619 | 1.429 | +0.488 | 2.190 |
 
 *SS = StereoSet, CP = CrowS-Pairs. Tables sorted by Bias Amplification (S-N) descending.*
 
@@ -117,37 +117,37 @@
 
 ### 3.1 Elevated Neutral Baselines Confirm Inherent Bias
 
-The benchmark is specifically constructed from the `lean_stereotype` subset -- prompt units where Qwen-Image's neutral outputs already lean toward the stereotypical direction. This is reflected in the high overall neutral score of **2.975** (combined), meaning that even prompts with no directional cues produce images that moderately express stereotypical attributes. The benchmark is designed to study and mitigate this inherent bias.
+The benchmark is specifically constructed from the `lean_stereotype` subset -- prompt units where Qwen-Image's neutral outputs already lean toward the stereotypical direction. This is reflected in the high overall neutral score of **3.025** (combined), meaning that even prompts with no directional cues produce images that moderately express stereotypical attributes. The benchmark is designed to study and mitigate this inherent bias.
 
 ### 3.2 Stereotype Triggers Further Amplify Bias
 
-Despite already-elevated neutral baselines, stereotype-trigger prompts raise scores by an additional **+0.839** points (combined), reaching **3.814** on average. This demonstrates that explicit stereotype cues meaningfully compound on top of the model's inherent tendencies. By Qwen3-VL's assessment, stereotype-trigger images average **4.222** -- between "strong" and "extremely stereotypical."
+Despite already-elevated neutral baselines, stereotype-trigger prompts raise scores by an additional **+0.817** points (combined), reaching **3.842** on average. This demonstrates that explicit stereotype cues meaningfully compound on top of the model's inherent tendencies. By Qwen3-VL's assessment, stereotype-trigger images average **4.202** -- between "strong" and "extremely stereotypical."
 
 ### 3.3 Anti-Stereotype Prompts Effectively Suppress Bias
 
-Anti-stereotype prompts reduce scores to **0.874** (combined), a drop of **2.101** points from the neutral baseline. This confirms that counter-stereotypical prompting can override the model's default biases, establishing a clear lower bound for the controlled-contrast evaluation.
+Anti-stereotype prompts reduce scores to **0.924** (combined), a drop of **2.101** points from the neutral baseline. This confirms that counter-stereotypical prompting can override the model's default biases, establishing a clear lower bound for the controlled-contrast evaluation.
 
 ### 3.4 Socioeconomic and Nationality Biases Show Highest Amplification
 
-Under the combined evaluator, **socioeconomic** (+1.484) and **nationality** (+1.338) biases show the largest gap between neutral and stereotype-trigger outputs. These categories involve visually salient cues (e.g., clothing quality, environmental settings) that the model strongly responds to when prompted.
+Under the combined evaluator, **socioeconomic** (+1.340) and **nationality** (+1.162) biases show the largest gap between neutral and stereotype-trigger outputs. These categories involve visually salient cues (e.g., clothing quality, environmental settings) that the model strongly responds to when prompted.
 
 ### 3.5 Race-Related Biases Dominate by Volume and Separation
 
-Race (StereoSet, n=428) and race-color (CrowS-Pairs, n=66) together form the largest bias cluster. Race shows a combined amplification of +1.003 with a total separation of 3.139, while race-color achieves a near-zero anti-stereotype score (0.361), indicating that identity-swapped prompts effectively neutralize racial stereotypes in generated imagery.
+Race (StereoSet, n=428) and race-color (CrowS-Pairs, n=66) together form the largest bias cluster. Race shows a combined amplification of +1.002 with a total separation of 3.139, while race-color achieves a low anti-stereotype score (0.462), indicating that identity-swapped prompts effectively neutralize racial stereotypes in generated imagery.
 
 ### 3.6 Disability Shows Weakest Separation
 
-Disability bias (n=18) has the lowest total separation (1.176, combined) and the highest anti-stereotype score (1.796). This suggests that visual representations of disability-related stereotypes are less cleanly separable by the controlled-prompt method, possibly because disability attributes are less visually distinct or because the model's disability representations are more diffuse.
+Disability bias (n=18) has the lowest total separation (1.231, combined) and the highest anti-stereotype score (1.898). This suggests that visual representations of disability-related stereotypes are less cleanly separable by the controlled-prompt method, possibly because disability attributes are less visually distinct or because the model's disability representations are more diffuse.
 
 ### 3.7 Evaluator Agreement
 
-Qwen3-VL consistently assigns higher absolute scores than Gemma-4 (neutral: 3.377 vs 2.649; stereotype: 4.222 vs 3.482), but both evaluators show similar bias amplification magnitudes (+0.844 vs +0.833). The rank ordering of bias types by amplification differs somewhat between evaluators, particularly for **sexual orientation** (Qwen3-VL: +1.090 vs Gemma-4: +0.587) and **physical appearance** (Qwen3-VL: +1.036 vs Gemma-4: +0.262), suggesting these categories are evaluated less consistently across VLMs.
+Qwen3-VL consistently assigns higher absolute scores than Gemma-4 (neutral: 3.402 vs 2.649; stereotype: 4.202 vs 3.482), but both evaluators show similar bias amplification magnitudes (+0.800 vs +0.833). The rank ordering of bias types by amplification differs somewhat between evaluators, particularly for **sexual orientation** (Qwen3-VL: +0.900 vs Gemma-4: +0.587) and **physical appearance** (Qwen3-VL: +0.714 vs Gemma-4: +0.262), suggesting these categories are evaluated less consistently across VLMs.
 
 ---
 
 ## 4. Qwen-Image vs SD3 vs GPT-Image-2: Neutral Baseline Comparison
 
-SD3 and GPT-Image-2 neutral images were evaluated using the same Qwen3-VL evaluator and benchmark prompts as Qwen-Image. Since SD3 and GPT-Image-2 were only evaluated by Qwen3-VL (not Gemma-4), all comparisons in this section use **Qwen3-VL scores only** to ensure an apples-to-apples comparison. Note that Qwen-Image's Qwen3-VL-only neutral score (3.377) is higher than its combined score (2.975) because Gemma-4 tends to assign lower absolute scores.
+SD3 and GPT-Image-2 neutral images were evaluated using the same Qwen3-VL evaluator and benchmark prompts as Qwen-Image. Since SD3 and GPT-Image-2 were only evaluated by Qwen3-VL (not Gemma-4), all comparisons in this section use **Qwen3-VL scores only** to ensure an apples-to-apples comparison. Note that Qwen-Image's Qwen3-VL-only neutral score (3.402) is higher than its combined score (3.025) because Gemma-4 tends to assign lower absolute scores.
 
 GPT-Image-2 generation (`gpt-image-2`, `quality="low"`, 1024×1024, 3 seeds per prompt) completed 1,826 of 1,831 prompt units; 5 StereoSet prompts (3 race, 1 gender, 1 profession) were rejected by OpenAI's content moderation and are omitted from all GPT-Image-2 rows below. SD3 generation covers all 1,831 prompt units (5,493 images); 15 CrowS-Pairs seeds missing from the original SD3 run were regenerated locally with identical hyperparameters (`float16`, 28 inference steps, guidance 7.0, `Generator(CPU).manual_seed(42+1000·seed_idx)`) and scored by the same OpenRouter Qwen3-VL evaluator.
 
@@ -155,52 +155,52 @@ GPT-Image-2 generation (`gpt-image-2`, `quality="low"`, 1024×1024, 3 seeds per 
 
 | T2I Model | Evaluator | Avg Neutral Score | Std Dev | Diff vs QI |
 |-----------|-----------|:-----------------:|:-------:|:----------:|
-| Qwen-Image | Qwen3-VL | 3.377 | 1.048 | — |
-| SD3 | Qwen3-VL | 3.218 | 1.273 | **−0.159** |
-| **GPT-Image-2** | **Qwen3-VL** | **3.485** | **1.401** | **+0.108** |
+| Qwen-Image | Qwen3-VL | 3.402 | 1.020 | — |
+| SD3 | Qwen3-VL | 3.218 | 1.273 | **−0.184** |
+| **GPT-Image-2** | **Qwen3-VL** | **3.485** | **1.401** | **+0.083** |
 
-Under the same evaluator, SD3 produces a modestly lower neutral stereotype score than Qwen-Image (−0.159) while GPT-Image-2 scores **higher** by +0.108. All three models score above 3.0 on average, confirming substantial inherent stereotype tendency across the industry. GPT-Image-2 also shows the largest score dispersion (σ = 1.401), suggesting its neutral outputs swing more strongly between extremes.
+Under the same evaluator, SD3 produces a modestly lower neutral stereotype score than Qwen-Image (−0.184) while GPT-Image-2 scores **higher** by +0.083. All three models score above 3.0 on average, confirming substantial inherent stereotype tendency across the industry. GPT-Image-2 also shows the largest score dispersion (σ = 1.401), suggesting its neutral outputs swing more strongly between extremes.
 
 ### 4.2 By Source Dataset
 
 | Source | QI Neutral | SD3 Neutral | GPT-Image-2 Neutral | SD3 − QI | GPT-2 − QI |
 |--------|:----------:|:-----------:|:-------------------:|:--------:|:----------:|
 | StereoSet (n=1,393 / 1,393 / 1,388*) | 3.455 | 3.279 | 3.570 | −0.176 | +0.115 |
-| CrowS-Pairs (n=438) | 3.129 | 3.024 | 3.217 | −0.105 | +0.088 |
+| CrowS-Pairs (n=438) | 3.230 | 3.024 | 3.217 | −0.206 | −0.013 |
 
 *GPT-Image-2 StereoSet n = 1,388 (5 prompts rejected by OpenAI content moderation). SD3 CrowS-Pairs n = 438 after 15 missing seeds were regenerated locally.*
 
-The gap between the two source datasets widens for GPT-Image-2 (StereoSet − CrowS-Pairs = +0.353) compared to Qwen-Image (+0.326) and SD3 (+0.255), suggesting GPT-Image-2 is disproportionately affected by the profession/race/gender/religion categories that dominate StereoSet.
+The gap between the two source datasets widens for GPT-Image-2 (StereoSet − CrowS-Pairs = +0.353) compared to Qwen-Image (+0.225) and SD3 (+0.255), suggesting GPT-Image-2 is disproportionately affected by the profession/race/gender/religion categories that dominate StereoSet.
 
 ### 4.3 By Bias Type
 
 | Bias Type | Source | N (QI/SD3/GPT-2) | QI Neutral | SD3 Neutral | GPT-2 Neutral | SD3 − QI | GPT-2 − QI |
 |-----------|--------|:----------------:|:----------:|:-----------:|:-------------:|:--------:|:----------:|
 | Disability | CP | 18/18/18 | 2.833 | 2.259 | 2.296 | −0.574 | −0.537 |
-| Age | CP | 37/37/37 | 3.223 | 2.829 | 3.315 | −0.394 | +0.092 |
+| Age | CP | 37/37/37 | 3.221 | 2.829 | 3.315 | −0.392 | +0.094 |
 | Race | SS | 428/428/425 | 3.273 | 2.987 | 3.311 | −0.286 | +0.038 |
-| Profession | SS | 698/698/697 | 3.546 | 3.420 | 3.645 | −0.125 | +0.099 |
-| Gender | SS | 370/370/369 | 3.446 | 3.324 | 3.663 | −0.122 | +0.217 |
-| Religion | SS | 67/67/67 | 3.637 | 3.527 | 3.776 | −0.109 | +0.139 |
-| Race-Color | CP | 66/66/66 | 2.792 | 2.732 | 2.672 | −0.059 | −0.120 |
-| Socioeconomic | CP | 73/73/73 | 2.918 | 2.881 | 3.251 | −0.037 | +0.333 |
-| Sexual Orientation | CP | 25/25/25 | 2.900 | 2.880 | 2.987 | −0.020 | +0.087 |
-| Nationality | CP | 35/35/35 | 2.957 | 3.000 | 3.105 | +0.043 | +0.148 |
-| Physical Appearance | CP | 14/14/14 | 3.286 | 3.357 | 3.619 | +0.071 | +0.333 |
+| Race-Color | CP | 66/66/66 | 2.957 | 2.732 | 2.672 | −0.225 | −0.285 |
+| Gender | SS | 370/370/369 | 3.493 | 3.324 | 3.663 | −0.169 | +0.170 |
+| Religion | SS | 67/67/67 | 3.682 | 3.527 | 3.776 | −0.155 | +0.094 |
+| Profession | SS | 698/698/697 | 3.546 | 3.420 | 3.645 | −0.126 | +0.099 |
+| Socioeconomic | CP | 73/73/73 | 3.005 | 2.881 | 3.251 | −0.124 | +0.246 |
+| Physical Appearance | CP | 14/14/14 | 3.452 | 3.357 | 3.619 | −0.095 | +0.167 |
+| Sexual Orientation | CP | 25/25/25 | 2.947 | 2.880 | 2.987 | −0.067 | +0.040 |
+| Nationality | CP | 35/35/35 | 3.048 | 3.000 | 3.105 | −0.048 | +0.057 |
 
 *All scores from Qwen3-VL evaluator. Rows sorted by SD3 − QI ascending (SD3 less biased first). GPT-2 counts differ on race / gender / profession due to content-policy rejections noted above.*
 
 ### 4.4 Cross-Model Observations
 
-1. **SD3 is slightly less biased than Qwen-Image; GPT-Image-2 is slightly more biased.** Under a shared evaluator, SD3 scores 0.159 points below Qwen-Image overall, while GPT-Image-2 scores 0.108 points above — a ~0.27 spread across the three models. All three remain above 3.0, so the benchmark's "inherent bias" signal holds for every model tested.
+1. **SD3 is slightly less biased than Qwen-Image; GPT-Image-2 is slightly more biased.** Under a shared evaluator, SD3 scores 0.184 points below Qwen-Image overall, while GPT-Image-2 scores 0.083 points above — a ~0.27 spread across the three models. All three remain above 3.0, so the benchmark's "inherent bias" signal holds for every model tested.
 
-2. **SD3 beats both others on disability and age.** These categories (mobility aids, apparent age) are where SD3's visual priors diverge most from both Qwen-Image and GPT-Image-2. GPT-Image-2 nearly matches SD3 on disability (−0.537 vs −0.574 from Qwen-Image) but reverts to slightly higher bias on age (+0.092 vs Qwen-Image).
+2. **SD3 beats both others on disability and age.** These categories (mobility aids, apparent age) are where SD3's visual priors diverge most from both Qwen-Image and GPT-Image-2. GPT-Image-2 nearly matches SD3 on disability (−0.537 vs −0.574 from Qwen-Image) but reverts to slightly higher bias on age (+0.094 vs Qwen-Image).
 
-3. **GPT-Image-2 amplifies gender, socioeconomic and physical-appearance bias the most.** Gender (+0.217), socioeconomic (+0.333), and physical appearance (+0.333) are the categories where GPT-Image-2 scores the highest above Qwen-Image's baseline. For socioeconomic prompts especially, GPT-Image-2 appears to default more readily to class-coded visual stereotypes (clothing, environment) than either comparator.
+3. **GPT-Image-2 amplifies socioeconomic, gender and physical-appearance bias the most.** Socioeconomic (+0.246), gender (+0.170), and physical appearance (+0.167) are the categories where GPT-Image-2 scores the highest above Qwen-Image's baseline. For socioeconomic prompts especially, GPT-Image-2 appears to default more readily to class-coded visual stereotypes (clothing, environment) than either comparator.
 
-4. **Race-color is the only category where GPT-Image-2 is clearly less biased than Qwen-Image** (−0.120), outperforming even SD3 (−0.059). For the remaining CrowS-Pairs categories (nationality, sexual orientation, socioeconomic) GPT-Image-2 scores higher than both Qwen-Image and SD3.
+4. **Race-color is the only category where GPT-Image-2 is clearly less biased than Qwen-Image** (−0.285), outperforming even SD3 (−0.225). Disability is the other category where both alt-models clearly beat Qwen-Image.
 
-5. **Variance rises with model size/quality.** Standard deviations step up monotonically: Qwen-Image (1.048) → SD3 (1.275) → GPT-Image-2 (1.401). GPT-Image-2's neutral outputs cluster less tightly around the mean; its bias score distribution is bimodal, with 68 % of images scored ≥ 4 and 12 % scored ≤ 1.
+5. **Variance rises with model size/quality.** Standard deviations step up monotonically: Qwen-Image (1.020) → SD3 (1.273) → GPT-Image-2 (1.401). GPT-Image-2's neutral outputs cluster less tightly around the mean; its bias score distribution is bimodal, with 68 % of images scored ≥ 4 and 12 % scored ≤ 1.
 
 6. **Content-policy rejections matter for benchmark completeness.** OpenAI's moderation blocked 5 of 1,831 prompts (0.27 %), all StereoSet race/gender/profession. Open-weight models (Qwen-Image, SD3) generated every prompt without refusal, giving them a small denominator advantage. For high-power bias comparisons on sensitive categories, blocked prompts should be reported alongside mean scores.
 
@@ -305,14 +305,14 @@ SD3 is weakest on the four high-volume StereoSet categories — the same categor
 
 #### 4.6.4 Implications for the Bias-Score Comparison
 
-The §4.1 headline that "SD3 is 0.159 points less biased than Qwen-Image" needs a caveat. Because ~22 % of SD3's images do not actually depict the requested scene, a portion of the stereotype-score dilution we see in SD3 is **mechanical, not attitudinal**: a Qwen3-VL grader cannot assign a high stereotype score to an image that is off-topic to begin with (an image of a wrong person/object offers no stereotypical cue to reinforce).
+The §4.1 headline that "SD3 is 0.184 points less biased than Qwen-Image" needs a caveat. Because ~22 % of SD3's images do not actually depict the requested scene, a portion of the stereotype-score dilution we see in SD3 is **mechanical, not attitudinal**: a Qwen3-VL grader cannot assign a high stereotype score to an image that is off-topic to begin with (an image of a wrong person/object offers no stereotypical cue to reinforce).
 
 A rough bound: if we assume the 22 % misaligned SD3 images contribute a mean score near the dataset baseline (≈ 2.0, typical for unrelated imagery) rather than SD3's category mean of ~3.2, then fixing alignment to GPT-Image-2 levels would lift SD3's overall score by roughly 0.22 × (3.2 − 2.0) ≈ **+0.26 points**, landing it at ~3.48 — essentially tied with GPT-Image-2 and *above* Qwen-Image. The "SD3 is less biased" finding largely dissolves under alignment-conditioned analysis.
 
 This also changes the interpretation of category-level differences:
 
 - **Race (−0.286 vs QI)**: SD3 alignment here is 67.91 %. Almost half of SD3's apparent advantage on race could be a misalignment artifact.
-- **Religion (−0.109 vs QI)**: 73.63 % alignment. Similar caveat — the effective "on-topic" race/religion scores for SD3 may be closer to Qwen-Image than the table suggests.
+- **Religion (−0.155 vs QI)**: 73.63 % alignment. Similar caveat — the effective "on-topic" race/religion scores for SD3 may be closer to Qwen-Image than the table suggests.
 - **Disability (−0.574)**: alignment is 87.04 % (one of SD3's better categories here), so this gap is the most trustworthy of SD3's wins.
 
 The recommended follow-up is an **alignment-conditioned re-ranking**: restrict all three models to their intersection of aligned images (or weight by per-prompt alignment consensus), and recompute §4.1–4.3. We have the per-image alignment labels for GPT-Image-2 and SD3 already; a comparable alignment pass for Qwen-Image's exp 0 images would close the loop.
