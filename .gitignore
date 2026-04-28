@@ -8,7 +8,6 @@ scripts/token.json
 
 # Generated images and experiment outputs
 experiment_outputs/
-plots/
 
 # Human eval image bundles (large; regenerated from manifest)
 data/human_eval/images/
