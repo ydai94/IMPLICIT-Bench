@@ -1,4 +1,4 @@
-# StereoImage: Bias Evaluation for Text-to-Image Models
+# IMPLICIT-Bench: Bias Evaluation for Text-to-Image Models
 
 A benchmark and analysis pipeline for measuring stereotype bias in
 text-to-image (T2I) models. Each prompt unit in the dataset has three
