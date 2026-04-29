@@ -46,13 +46,10 @@ Per-image stereotype scores (0–5 rubric) are written to
 ## Repository Layout
 
 ```
-data/                  Benchmark prompts, VLM scores, KG annotations, human-eval bundles
-experiments/           Generation + evaluation pipeline (config, evaluate_*, cache_*)
-scripts/               Standalone analyses (agreement, CLIP, category difficulty, case-study finder, form gen)
-cache/                 LLM/VLM outputs, embeddings, eval CSVs (embeddings/checkpoints gitignored)
-reports/               Aggregate CSVs and analysis markdown (gitignored — local-only output)
-plots/                 Generated figures (gitignored)
-experiment_outputs/    Generated images per experiment (gitignored, large)
+data/           Benchmark prompts, VLM scores, KG annotations, human-eval bundles
+experiments/    Generation + evaluation pipeline (config, evaluate_*, cache_*)
+scripts/        Standalone analyses (agreement, CLIP, category difficulty, case-study finder, form gen)
+cache/          LLM/VLM outputs and per-experiment evaluation CSVs
 ```
 
 ## Setup
