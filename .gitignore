@@ -22,6 +22,9 @@ checkpoints/
 # Slurm logs
 experiments/slurm/logs/
 
+# Reports (local-only analysis output)
+reports/
+
 # Claude config
 .claude/
 
@@ -37,6 +40,3 @@ build/
 # OS files
 .DS_Store
 Thumbs.db
-
-# Reports
-reports/
