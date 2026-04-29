@@ -35,6 +35,11 @@ def main():
     p.add_argument("--out-csv", default=OUT_CSV)
     p.add_argument("--n", type=int, default=50)
     p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--exclude-csv", default=None,
+                   help="Optional CSV of cases to drop from the source pool "
+                        "before sampling (matched on the `id` column). Use "
+                        "this for follow-up rounds to avoid resampling cases "
+                        "that were already evaluated.")
     args = p.parse_args()
 
     df = pd.read_csv(args.source_csv)
@@ -46,6 +51,14 @@ def main():
     missing = needed_cols - set(df.columns)
     if missing:
         sys.exit(f"Source CSV missing columns: {sorted(missing)}")
+
+    if args.exclude_csv:
+        excl = pd.read_csv(args.exclude_csv, usecols=["id"])
+        excl_ids = set(excl["id"].astype(str))
+        before = len(df)
+        df = df[~df["id"].astype(str).isin(excl_ids)].reset_index(drop=True)
+        print(f"Excluded {before - len(df)} rows already in "
+              f"{args.exclude_csv}; pool now {len(df)} rows.")
 
     sampled = random_sample(df, args.n, args.seed)
 

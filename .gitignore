@@ -12,6 +12,8 @@ experiment_outputs/
 # Human eval image bundles (large; regenerated from manifest)
 data/human_eval/images/
 data/human_eval/images.zip
+data/human_eval_round2/images/
+data/human_eval_round2/images.zip
 
 # Cache (only embeddings are large; track the rest)
 cache/embeddings/
