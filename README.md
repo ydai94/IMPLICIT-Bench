@@ -46,26 +46,14 @@ Per-image stereotype scores (0–5 rubric) are written to
 ## Repository Layout
 
 ```
-data/                  Benchmark prompts, VLM scores, KG annotations, human-eval bundle
+data/                  Benchmark prompts, VLM scores, KG annotations, human-eval bundles
 experiments/           Generation + evaluation pipeline (config, evaluate_*, cache_*)
-scripts/               Standalone analyses (agreement, CLIP, category difficulty, form gen)
+scripts/               Standalone analyses (agreement, CLIP, category difficulty, case-study finder, form gen)
 cache/                 LLM/VLM outputs, embeddings, eval CSVs (embeddings/checkpoints gitignored)
-reports/               Aggregate CSVs and analysis markdown
+reports/               Aggregate CSVs and analysis markdown (gitignored — local-only output)
 plots/                 Generated figures (gitignored)
 experiment_outputs/    Generated images per experiment (gitignored, large)
 ```
-
-## Key Reports
-
-| File | What it covers |
-|---|---|
-| `qwen_image_bias_analysis.md` | Per-bias-type means, S − N, S − A on the Qwen-Image baseline (Qwen3-VL + Gemma-4 + CLIP evaluators) |
-| `baseline_comparison.md` | Cross-model comparison across Qwen-Image / SD3 / GPT-Image-2 |
-| `qwen_image_pre_post_filter_bias.md` | Effect of the lean_stereotype filter |
-| `nano_banana_failure_report.md` | Failure-case write-up for the Nano Banana 2 baseline |
-| `reports/category_difficulty_analysis.md` | Per-category difficulty score (Hedges' g, S vs A) with tier interpretation |
-| `reports/agreement_report.md` | LLM-judge inter-annotator agreement (Fleiss' κ, Cohen's κ) on prompt labeling |
-| `reports/all_experiments_comparison.md` | Aggregate cross-experiment results |
 
 ## Setup
 
@@ -99,6 +87,19 @@ python scripts/compute_agreement.py
 # → reports/agreement_by_bias_type.csv
 ```
 
+**Human-eval analysis** (combines Round 1 + Round 2, compares 3 humans against Qwen3-VL and Gemma-4):
+```bash
+python scripts/analyze_human_eval.py
+# → reports/human_eval_summary.md
+```
+
+**Case-study finder** for the introduction figure (cases where all four baseline T2I models show high stereotype bias on the neutral prompt while our method debiases successfully, all with prompt-aligned outputs):
+```bash
+python scripts/find_case_studies.py [--baseline-min 4.0] [--ours-max 1.0] [--top-n 20]
+# → data/case_studies_intro_figure/candidates.csv
+# → data/case_studies_intro_figure/images/<rank>_<case_id>/{qwen,gpt,sd3,nano,ours}_seed{0,1,2}.png
+```
+
 **CLIP comparison** (image-embedding similarities + per-bias-type box plots):
 ```bash
 python scripts/run_clip_comparison.py
@@ -113,15 +114,22 @@ python experiments/evaluate_alignment.py --exp_id 0     # neutral-prompt alignme
 
 ## Human Evaluation Pipeline
 
-A 50-case stratified sample is rated by humans via Google Forms; see
-[`data/human_eval/README.md`](data/human_eval/README.md). Pipeline scripts:
+Two rounds of 50 randomly sampled cases each were rated by 3 annotators via
+Google Forms; see [`data/human_eval/README.md`](data/human_eval/README.md).
+Round 2 (`data/human_eval_round2/`) excludes Round 1 cases via the sampler's
+`--exclude-csv` flag. The same 3 raters scored both rounds, giving 100 unique
+cases × 3 conditions × 3 raters = 900 image ratings + 300 KG-validity ratings.
 
-- `scripts/sample_human_eval.py` — stratified case sampler
+Pipeline scripts:
+
+- `scripts/sample_human_eval.py` — random case sampler (`--exclude-csv` for follow-up rounds)
 - `scripts/build_forms_package.py` — packages images and questions
 - `scripts/build_google_form.py` / `scripts/create_google_form_api.py` — form materializers
+- `scripts/analyze_human_eval.py` — combined Round 1 + Round 2 analysis vs. VLMs
 
-The image bundle (`data/human_eval/images/`, `images.zip`) is gitignored.
-Regenerate locally from the manifest if you need to host the form again.
+Image bundles (`data/human_eval{,_round2}/images/`, `images.zip`) are
+gitignored. Regenerate locally from each round's `manifest.csv` if you need
+to re-host the form.
 
 ## Data Provenance
 
