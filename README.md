@@ -7,6 +7,8 @@ allowing both bias measurement (does the model default to the
 stereotype?) and bias controllability (does explicit prompting move
 the model?).
 
+![Pipeline overview](imgs/pipeline.png)
+
 ## Dataset
 
 | Property | Value |
