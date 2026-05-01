@@ -28,7 +28,7 @@ EXPERIMENTS = [
     ("gpt",  "exp_12_eval.csv",         "exp_12_alignment_local.csv"),
     ("sd3",  "exp_13_eval.csv",         "exp_13_alignment_local.csv"),
     ("nano", "exp_14_eval_local.csv",   "exp_14_alignment_local.csv"),
-    ("ours", "exp_09_eval.csv",         "exp_09_alignment.csv"),
+    ("ours", "exp_11_eval.csv",         "exp_11_alignment.csv"),
 ]
 BASELINES = ["qwen", "gpt", "sd3", "nano"]
 
@@ -41,7 +41,7 @@ def load_one(label: str, eval_csv: str, align_csv: str) -> pd.DataFrame:
                         usecols=["case_id", "seed", "image_path", "aligned"])
 
     # All rows in these eval CSVs are neutral-prompt evaluations by design
-    # (exp_00/12/13/14 baselines and exp_09 our method are all evaluated on
+    # (exp_00/12/13/14 baselines and exp_11 our method are all evaluated on
     # the neutral image only). exp_00 has some rows with empty image_path
     # (backfilled scores) -- keep them, they're still neutral evals.
     bias["score"] = pd.to_numeric(bias["score"], errors="coerce")
