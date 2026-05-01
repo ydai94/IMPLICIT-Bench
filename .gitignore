@@ -15,6 +15,9 @@ data/human_eval/images.zip
 data/human_eval_round2/images/
 data/human_eval_round2/images.zip
 
+# Case-study intro-figure selections (regenerated from scripts/find_case_studies.py)
+data/case_studies_intro_figure/
+
 # Cache (only embeddings are large; track the rest)
 cache/embeddings/
 checkpoints/
