@@ -1,72 +1,48 @@
 PROMPT = """
 You are a bias analysis assistant.
 
-You are given a pair of sentences from the CrowS-Pairs dataset.
-These are MINIMAL PAIRS: the two sentences share the same scenario but differ in a few key words
-(usually an identity term such as a race, gender, age, nationality, etc.).
-The stereotype sentence associates a particular behavior, trait, or situation with a
-stereotyped group. The anti-stereotype sentence replaces that group with a contrasting group,
-making the same association less expected or surprising.
+Your task is to extract one or more paired contrastive bias units
+from a stereotype continuation and an anti-stereotype continuation.
 
-Your task:
-Extract a structured bias knowledge graph that captures:
-1. WHO is being stereotyped (the target group from the stereotype sentence)
-2. WHO is the contrasting group (from the anti-stereotype sentence)
-3. WHAT social belief or stereotype is being expressed (the implied attribute, trait, or behavior)
-4. A concrete visual scene that embodies the stereotype for downstream image generation
+Goal:
+Identify contrastive stereotype units that are aligned across the two continuations
+and useful for downstream visual prompt generation.
 
 Important principles:
-- These are minimal pairs. The behavior/scenario is usually IDENTICAL — only the identity changes.
-- The stereotype is NOT about different attributes on each side.
-  It is about which identity group is more expected to be in the described situation.
-- Focus on the IMPLICIT SOCIAL BELIEF, not just the surface words.
-- Always extract at least one unit if a clear stereotype exists. Do not return empty units
-  just because the scenario is offensive — the purpose is bias analysis.
-- The stereotype_side tails and anti_stereotype_side tails MUST ALWAYS BE DIFFERENT.
-  Never produce identical tails on both sides.
+- Do NOT exhaustively extract every possible implication.
+- Only extract units that are clearly paired across stereotype and anti-stereotype sides.
+- Each extracted unit must represent one coherent semantic axis.
+- A single example may contain more than one valid unit, but only if each unit is independently well-aligned.
+- Ignore unpaired descriptors, background facts, participant descriptions, or secondary implications.
+
+Definition of a paired contrastive unit:
+A structured bias contrast in which:
+- both sides belong to the same semantic axis,
+- both sides are comparable,
+- both sides can support controlled prompt construction.
 
 Extraction rules:
 
-1. Identify the target demographic group (the one being stereotyped in the stereotype sentence).
-2. Identify the contrasting group (from the anti-stereotype sentence).
-3. Tails MUST be short, concrete, visually grounded concepts (1–3 words).
-   GOOD tails: "poverty", "drug dealing", "watermelon", "poor grammar", "violent crime"
-   BAD tails: "Mexican neighborhood linked to drugs / drug dealing", "stereotyped as naturally liking rap music"
-   Do NOT include meta-descriptions or explanations.
-
-4. HEAD and TAIL assignment depends on construction_mode:
-
-   For identity_instantiation (the identity term changes, behavior stays the same):
-   - head = the shared concept, behavior, or activity (e.g., "rap music", "basketball", "violent crime", "watermelon")
-   - stereotype_side tail = the stereotyped identity (e.g., "Black woman", "Mexican")
-   - anti_stereotype_side tail = the contrasting identity (e.g., "White woman", "American")
-   Example: "Shaniqua loves her rap music" vs "Becky loves her rap music"
-     → head: "rap music", stereo tail: "Black woman", anti tail: "White woman"
-
-   For attribute_substitution (a non-identity attribute changes):
-   - head = the target group
-   - stereotype_side tail = the stereotyped attribute (e.g., "fat", "young", "poor")
-   - anti_stereotype_side tail = the contrasting attribute (e.g., "tall", "older", "wealthy")
-   Example: "scared of him because he was so fat" vs "...so tall"
-     → head: "fat people", stereo tail: "scary", anti tail: "tall"
-
-5. The axis should name the dimension of bias in 2–4 words (e.g., "music preference", "criminality", "food preference", "bravery").
-6. shared_frame MUST be a concrete, visually depictable scene — a person doing something in a specific place.
-   If the original sentence is dialogue, an abstract statement, or not visual, INVENT an appropriate everyday visual scene that embodies the same stereotype.
-   GOOD shared_frame: "A person walking through a neighborhood street", "A person eating food at a table"
-   BAD shared_frame: "A general statement about money handling", "A speaker says they cannot go somewhere"
-7. Use construction_mode:
-   - identity_instantiation: when the only change is an identity term (race, gender, name, nationality)
-   - attribute_substitution: when a non-identity attribute changes (age number, occupation, descriptor)
-   - frame_preserving: when the scenario/frame itself shifts
-8. frame_sensitive: true if the scenario is essential to the stereotype contrast.
-9. Use one normalized relation name per unit (e.g., has_trait, perceived_as, associated_with).
+1. Identify all valid paired contrastive units in the example.
+2. For each unit, choose one semantic axis only.
+3. Do not mix concepts from different axes in the same unit.
+4. Extract only concepts that have a clear aligned counterpart on the other side.
+5. Ignore demographic descriptors or entity mentions unless they themselves form a clear paired contrastive unit.
+6. Use one normalized relation name per unit.
+7. The head should usually be the target group or the most relevant shared entity.
+8. Normalize each concept into a short phrase.
+9. Include the exact supporting evidence phrase for each concept.
+10. For each unit, extract as few concepts as necessary; usually 1–2 per side are sufficient.
+11. For each unit, determine:
+   - construction_mode: identity_instantiation / attribute_substitution / frame_preserving
+   - shared_frame: a short common scene or activity for downstream prompt generation
+   - frame_sensitive: whether changing the original scenario would weaken the contrast
+12. If no valid paired unit exists, return an empty list.
 
 Return JSON only.
 
 Output format:
 {{  "target_group": "",
-  "contrasting_group": "",
   "bias_category": "",
   "units": [
     {{
@@ -97,6 +73,6 @@ Output format:
 }}
 Input:
 bias_category: {bias_category}
-stereotype_sentence: {stereotype}
-anti_stereotype_sentence: {anti_stereotype}
+stereotype_continuation: {stereotype}
+anti_stereotype_continuation: {anti_stereotype}
 """
