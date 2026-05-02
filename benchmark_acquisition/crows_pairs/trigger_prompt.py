@@ -47,4 +47,6 @@ shared_frame: {shared_frame}
 frame_sensitive: {frame_sensitive}
 stereotype_tails: {stereotype_tails}
 anti_stereotype_tails: {anti_stereotype_tails}
+stereotype_sentence: {stereotype_sentence}
+anti_stereotype_sentence: {anti_stereotype_sentence}
 """

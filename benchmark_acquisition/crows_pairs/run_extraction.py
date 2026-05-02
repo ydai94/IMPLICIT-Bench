@@ -47,13 +47,21 @@ def load_processed_ids(output_path: str) -> set:
 
 
 def build_pairs(df: pd.DataFrame) -> list[dict]:
-    """Build stereotype/anti-stereotype pairs from each row."""
+    """Build stereotype/anti-stereotype pairs from each row.
+
+    On `antistereo` rows the focal sentence (`sent_more`) applies the
+    stereotyped trait to the historically-advantaged group, so we swap so that
+    `stereotype` always names the conventional stereotype direction against
+    the disadvantaged group.
+    """
     pairs = []
     for idx, row in df.iterrows():
-        # sent_more is ALWAYS the more stereotypical sentence in CrowS-Pairs,
-        # regardless of stereo_antistereo direction.
-        stereotype = row["sent_more"]
-        anti_stereotype = row["sent_less"]
+        if row["stereo_antistereo"] == "antistereo":
+            stereotype = row["sent_less"]
+            anti_stereotype = row["sent_more"]
+        else:
+            stereotype = row["sent_more"]
+            anti_stereotype = row["sent_less"]
 
         pairs.append({
             "id": int(idx),

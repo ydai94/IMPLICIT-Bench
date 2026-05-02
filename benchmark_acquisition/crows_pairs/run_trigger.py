@@ -97,6 +97,8 @@ def call_gpt(client: OpenAI, group: dict) -> dict | None:
         frame_sensitive=group["frame_sensitive"],
         stereotype_tails=group["stereotype_tails"],
         anti_stereotype_tails=group["anti_stereotype_tails"],
+        stereotype_sentence=group["stereotype_sentence"],
+        anti_stereotype_sentence=group["anti_stereotype_sentence"],
     )
 
     try:
