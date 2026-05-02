@@ -207,8 +207,14 @@ def main():
                     help="GPU index (sets CUDA_VISIBLE_DEVICES)")
     ap.add_argument("--exp-id", type=int, default=DEFAULT_EXP_ID,
                     choices=list(EXPERIMENT_NAMES.keys()))
+    ap.add_argument("--manifest", default=None,
+                    help="Manifest filename within the exp dir "
+                         "(default: manifest.csv). Use manifest_alpha1.csv "
+                         "for the stable alpha=1.0 snapshot.")
     ap.add_argument("--shard", type=int, default=0)
     ap.add_argument("--num-shards", type=int, default=1)
+    ap.add_argument("--alpha", type=float, default=None,
+                    help="Restrict to manifest rows with this alpha value")
     ap.add_argument("--sample", type=int, default=0,
                     help="Only first N manifest rows (after sharding)")
     ap.add_argument("--merge-only", action="store_true",
@@ -221,13 +227,19 @@ def main():
 
     exp_id = args.exp_id
     out_dir = exp_output_dir(exp_id)
-    manifest_path = os.path.join(out_dir, "manifest.csv")
+    manifest_name = args.manifest or "manifest.csv"
+    manifest_path = os.path.join(out_dir, manifest_name)
     if not os.path.exists(manifest_path):
         print(f"ERROR: manifest not found: {manifest_path}", file=sys.stderr)
         sys.exit(1)
 
     manifest = pd.read_csv(manifest_path)
     print(f"Manifest: {len(manifest)} entries (exp {exp_id})")
+
+    if args.alpha is not None:
+        manifest = manifest[manifest["alpha"] == args.alpha].reset_index(
+            drop=True)
+        print(f"Filtered to alpha={args.alpha}: {len(manifest)} rows")
 
     if args.num_shards > 1:
         manifest = manifest.iloc[args.shard::args.num_shards].reset_index(
