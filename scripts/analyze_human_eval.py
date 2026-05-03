@@ -72,7 +72,7 @@ def long_form(round_name, manifest_path, responses_path) -> pd.DataFrame:
             v = resp.iat[r, i + 1]
             rec = {
                 "round": round_name,
-                # Same 3 raters did both rounds, paired by submission order.
+                # Same 5 raters did both rounds, paired by submission order.
                 "rater": f"rater_{r}",
                 "case_id": m["case_id"],
                 "section_id": m["section_id"],
@@ -328,7 +328,7 @@ def main():
              "ICC(2,1)": "{:.3f}",
              "ICC(2,k)": "{:.3f}"}))
     out.append("")
-    out.append("The same 3 raters scored both rounds (paired by submission "
+    out.append("The same 5 raters scored both rounds (paired by submission "
                "order), so the Combined row pools 300 images per rater "
                "(100 cases x 3 conditions).")
     out.append("")
@@ -407,11 +407,11 @@ def main():
     out.append("")
 
     # ------------------------------------------------------------------
-    # 4b. Overall agreement (3 humans + 2 VLMs treated as 5 raters)
+    # 4b. Overall agreement (5 humans + 2 VLMs treated as 7 raters)
     # ------------------------------------------------------------------
-    out.append("## 4b. Overall agreement (3 humans + Qwen3-VL + Gemma-4)")
+    out.append("## 4b. Overall agreement (5 humans + Qwen3-VL + Gemma-4)")
     out.append("")
-    out.append("Treats all 5 annotators as raters of the same 300 images and "
+    out.append("Treats all 7 annotators as raters of the same 300 images and "
                "reports pooled inter-annotator reliability.")
     out.append("")
 
@@ -442,7 +442,7 @@ def main():
         icc_k = k * icc1 / (1 + (k - 1) * icc1) if (1 + (k - 1) * icc1) else np.nan
         out.append(md_table(
             pd.DataFrame([{
-                "Annotators": "3 humans + 2 VLMs",
+                "Annotators": "5 humans + 2 VLMs",
                 "Images": int(wide5.shape[0]),
                 "Mean pairwise Pearson r": mean_pearson,
                 "Mean pairwise Spearman rho": mean_spearman,
@@ -478,10 +478,10 @@ def main():
     # ------------------------------------------------------------------
     out.append("## 5. Caveats")
     out.append("")
-    out.append("- Only 3 raters total, so per-bias-type breakdowns have "
+    out.append("- Only 5 raters total, so per-bias-type breakdowns have "
                "wide CIs and should be read as directional.")
     out.append("- Round 1 and Round 2 use disjoint case samples drawn from "
-               "the same lean-stereotype pool, with the same 3 raters scoring "
+               "the same lean-stereotype pool, with the same 5 raters scoring "
                "both rounds (paired by submission order).")
     out.append("- Only seed 1 was rated for each case.")
     out.append("- VLM scores are stored in each round's manifest "

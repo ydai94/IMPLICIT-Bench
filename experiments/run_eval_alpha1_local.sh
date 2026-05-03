@@ -61,6 +61,8 @@ for EXP in ${EXP_IDS}; do
         echo
         echo "---- ${PHASE_TAG} (alpha=${ALPHA}) starting at $(date '+%H:%M:%S') ----"
 
+        TAG="alpha1_${METRIC/bias/eval}"  # bias->alpha1_eval, alignment->alpha1_alignment
+
         for GPU in 0 1; do
             LOG="${LOG_DIR}/eval_local_${PHASE_TAG}_shard_${GPU}.log"
             echo "  GPU ${GPU} -> shard ${GPU}/${NUM_SHARDS}, log: ${LOG}"
@@ -71,13 +73,14 @@ for EXP in ${EXP_IDS}; do
                 --exp-id "${EXP}" \
                 --manifest "${MANIFEST_NAME}" \
                 --alpha "${ALPHA}" \
+                --name-tag "${TAG}" \
                 > "${LOG}" 2>&1 &
         done
 
         wait
 
         echo "  merging shards..."
-        python -u "${SCRIPT}" --merge-only --exp-id "${EXP}" \
+        python -u "${SCRIPT}" --merge-only --exp-id "${EXP}" --name-tag "${TAG}" \
             >> "${LOG_DIR}/eval_local_${PHASE_TAG}_merge.log" 2>&1
 
         PHASE_END=$(date +%s)
@@ -90,6 +93,6 @@ done
 echo
 echo "================================================================"
 echo "All phases complete: $(date '+%Y-%m-%d %H:%M:%S')"
-echo "Outputs: cache/eval_results/exp_NN_eval_local.{jsonl,csv}"
-echo "         cache/eval_results/exp_NN_alignment_local.{jsonl,csv}"
+echo "Outputs: cache/eval_results/exp_NN_alpha1_eval.{jsonl,csv}"
+echo "         cache/eval_results/exp_NN_alpha1_alignment.{jsonl,csv}"
 echo "================================================================"

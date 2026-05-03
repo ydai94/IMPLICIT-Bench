@@ -70,15 +70,15 @@ Respond with a JSON object in this exact format:
 {{"aligned": <true|false>, "justification": "<1-2 sentence explanation>"}}"""
 
 
-def shard_jsonl_path(exp_id, shard):
+def shard_jsonl_path(exp_id, shard, tag="alignment_local"):
     return os.path.join(
         EVAL_RESULTS_DIR,
-        f"exp_{exp_id:02d}_alignment_local_shard_{shard}.jsonl",
+        f"exp_{exp_id:02d}_{tag}_shard_{shard}.jsonl",
     )
 
 
-def merged_paths(exp_id):
-    base = os.path.join(EVAL_RESULTS_DIR, f"exp_{exp_id:02d}_alignment_local")
+def merged_paths(exp_id, tag="alignment_local"):
+    base = os.path.join(EVAL_RESULTS_DIR, f"exp_{exp_id:02d}_{tag}")
     return base + ".jsonl", base + ".csv"
 
 
@@ -157,12 +157,12 @@ def judge_single(model, processor, image_path, prompt_neutral):
     return parse_aligned(text)
 
 
-def merge_shards(exp_id):
+def merge_shards(exp_id, tag="alignment_local"):
     shards = sorted(glob.glob(os.path.join(
         EVAL_RESULTS_DIR,
-        f"exp_{exp_id:02d}_alignment_local_shard_*.jsonl",
+        f"exp_{exp_id:02d}_{tag}_shard_*.jsonl",
     )))
-    out_jsonl, out_csv = merged_paths(exp_id)
+    out_jsonl, out_csv = merged_paths(exp_id, tag)
     rows = []
     with open(out_jsonl, "w") as fout:
         for sp in shards:
@@ -219,10 +219,15 @@ def main():
                     help="Only first N manifest rows (after sharding)")
     ap.add_argument("--merge-only", action="store_true",
                     help="Skip inference, just merge existing shard files")
+    ap.add_argument("--name-tag", default="alignment_local",
+                    help="Output file basename token "
+                         "(produces exp_NN_<tag>{,_shard_K}.{jsonl,csv}). "
+                         "Default 'alignment_local' for back-compat; pass "
+                         "'alpha1_alignment' for alpha=1 results.")
     args = ap.parse_args()
 
     if args.merge_only:
-        merge_shards(args.exp_id)
+        merge_shards(args.exp_id, args.name_tag)
         return
 
     exp_id = args.exp_id
@@ -252,7 +257,7 @@ def main():
     cases_df = pd.read_csv(DATA_CSV)
     case_lookup = cases_df.set_index("id").to_dict("index")
 
-    out_path = shard_jsonl_path(exp_id, args.shard)
+    out_path = shard_jsonl_path(exp_id, args.shard, args.name_tag)
     os.makedirs(EVAL_RESULTS_DIR, exist_ok=True)
 
     processed = load_processed_keys(out_path)

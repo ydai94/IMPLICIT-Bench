@@ -86,7 +86,7 @@ python scripts/compute_agreement.py
 # → reports/agreement_by_bias_type.csv
 ```
 
-**Human-eval analysis** (combines Round 1 + Round 2, compares 3 humans against Qwen3-VL and Gemma-4):
+**Human-eval analysis** (combines Round 1 + Round 2, compares 5 humans against Qwen3-VL and Gemma-4):
 ```bash
 python scripts/analyze_human_eval.py
 # → reports/human_eval_summary.md
@@ -113,11 +113,11 @@ python experiments/evaluate_alignment.py --exp_id 0     # neutral-prompt alignme
 
 ## Human Evaluation Pipeline
 
-Two rounds of 50 randomly sampled cases each were rated by 3 annotators via
+Two rounds of 50 randomly sampled cases each were rated by 5 annotators via
 Google Forms; see [`data/human_eval/README.md`](data/human_eval/README.md).
 Round 2 (`data/human_eval_round2/`) excludes Round 1 cases via the sampler's
-`--exclude-csv` flag. The same 3 raters scored both rounds, giving 100 unique
-cases × 3 conditions × 3 raters = 900 image ratings + 300 KG-validity ratings.
+`--exclude-csv` flag. The same 5 raters scored both rounds, giving 100 unique
+cases × 3 conditions × 5 raters = 1500 image ratings + 500 KG-validity ratings.
 
 Pipeline scripts:
 

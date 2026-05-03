@@ -1,19 +1,19 @@
 ================================================================
 Local 2-GPU eval: exps=[4 5 6 7 8 9 10 11] metrics=[bias alignment] alpha=1.0
 Manifest: manifest_alpha1.csv (stable disk-walk snapshot)
-Started: 2026-05-02 14:26:33
+Started: 2026-05-03 18:38:10
 ================================================================
 
 ---- Building stable alpha=1.0 manifests for 4 5 6 7 8 9 10 11 ----
-Exp 4: 5239 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_04_extracted_kg_full_triple_sv/manifest_alpha1.csv
-Exp 5: 5105 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_05_extracted_kg_tail_sv/manifest_alpha1.csv
-Exp 6: 5008 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_06_gt_kg_full_triple_sv/manifest_alpha1.csv
-Exp 7: 4993 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_07_gt_kg_tail_sv/manifest_alpha1.csv
-Exp 8: 5300 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_08_extracted_kg_llm_pair_sv/manifest_alpha1.csv
-Exp 9: 5097 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_09_gt_kg_llm_pair_sv/manifest_alpha1.csv
-Exp 10: 5000 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_10_extracted_kg_gt_pair_sv/manifest_alpha1.csv
-Exp 11: 4996 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_11_gt_kg_gt_pair_sv/manifest_alpha1.csv
+Exp 4: 5493 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_04_extracted_kg_full_triple_sv/manifest_alpha1.csv
+Exp 5: 5493 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_05_extracted_kg_tail_sv/manifest_alpha1.csv
+Exp 6: 5493 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_06_gt_kg_full_triple_sv/manifest_alpha1.csv
+Exp 7: 5493 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_07_gt_kg_tail_sv/manifest_alpha1.csv
+Exp 8: 5493 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_08_extracted_kg_llm_pair_sv/manifest_alpha1.csv
+Exp 9: 5493 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_09_gt_kg_llm_pair_sv/manifest_alpha1.csv
+Exp 10: 5493 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_10_extracted_kg_gt_pair_sv/manifest_alpha1.csv
+Exp 11: 5493 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_11_gt_kg_gt_pair_sv/manifest_alpha1.csv
 
----- exp_04_bias (alpha=1.0) starting at 14:26:37 ----
+---- exp_04_bias (alpha=1.0) starting at 18:38:14 ----
   GPU 0 -> shard 0/2, log: /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_local_exp_04_bias_shard_0.log
   GPU 1 -> shard 1/2, log: /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_local_exp_04_bias_shard_1.log
