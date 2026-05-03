@@ -18,3 +18,100 @@ Exp 11: 5493 alpha=1.0 entries -> /data/gpfs/projects/punim2888/stereoimage/expe
   manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_04_extracted_kg_full_triple_sv/manifest_alpha1.csv
   output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_04_alpha1_eval.jsonl
   log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_04_bias.log
+  exp_04_bias done in 00h01m26s
+
+---- exp_04_alignment (API) starting at 18:58:33 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_04_extracted_kg_full_triple_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_04_alpha1_alignment.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_04_alignment.log
+  exp_04_alignment done in 00h01m06s
+
+---- exp_05_bias (API) starting at 18:59:39 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_05_extracted_kg_tail_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_05_alpha1_eval.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_05_bias.log
+  exp_05_bias done in 00h02m02s
+
+---- exp_05_alignment (API) starting at 19:01:41 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_05_extracted_kg_tail_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_05_alpha1_alignment.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_05_alignment.log
+  exp_05_alignment done in 00h01m43s
+
+---- exp_06_bias (API) starting at 19:03:24 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_06_gt_kg_full_triple_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_06_alpha1_eval.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_06_bias.log
+  exp_06_bias done in 00h03m06s
+
+---- exp_06_alignment (API) starting at 19:06:30 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_06_gt_kg_full_triple_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_06_alpha1_alignment.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_06_alignment.log
+  exp_06_alignment done in 00h02m38s
+
+---- exp_07_bias (API) starting at 19:09:08 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_07_gt_kg_tail_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_07_alpha1_eval.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_07_bias.log
+  exp_07_bias done in 00h02m25s
+
+---- exp_07_alignment (API) starting at 19:11:33 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_07_gt_kg_tail_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_07_alpha1_alignment.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_07_alignment.log
+  exp_07_alignment done in 00h02m09s
+
+---- exp_08_bias (API) starting at 19:13:42 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_08_extracted_kg_llm_pair_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_08_alpha1_eval.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_08_bias.log
+  exp_08_bias done in 00h24m51s
+
+---- exp_08_alignment (API) starting at 19:38:33 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_08_extracted_kg_llm_pair_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_08_alpha1_alignment.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_08_alignment.log
+  exp_08_alignment done in 00h19m52s
+
+---- exp_09_bias (API) starting at 19:58:25 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_09_gt_kg_llm_pair_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_09_alpha1_eval.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_09_bias.log
+  exp_09_bias done in 00h21m41s
+
+---- exp_09_alignment (API) starting at 20:20:06 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_09_gt_kg_llm_pair_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_09_alpha1_alignment.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_09_alignment.log
+  exp_09_alignment done in 00h20m14s
+
+---- exp_10_bias (API) starting at 20:40:20 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_10_extracted_kg_gt_pair_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_10_alpha1_eval.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_10_bias.log
+  exp_10_bias done in 00h24m00s
+
+---- exp_10_alignment (API) starting at 21:04:20 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_10_extracted_kg_gt_pair_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_10_alpha1_alignment.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_10_alignment.log
+  exp_10_alignment done in 00h19m45s
+
+---- exp_11_bias (API) starting at 21:24:05 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_11_gt_kg_gt_pair_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_11_alpha1_eval.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_11_bias.log
+  exp_11_bias done in 00h22m13s
+
+---- exp_11_alignment (API) starting at 21:46:18 ----
+  manifest: /data/gpfs/projects/punim2888/stereoimage/experiment_outputs/exp_11_gt_kg_gt_pair_sv/manifest_alpha1.csv
+  output:   /data/gpfs/projects/punim2888/stereoimage/cache/eval_results/exp_11_alpha1_alignment.jsonl
+  log:      /data/gpfs/projects/punim2888/stereoimage/experiments/logs/eval_api_alpha1_exp_11_alignment.log
+  exp_11_alignment done in 00h19m30s
+
+================================================================
+All API phases complete: 2026-05-03 22:05:48
+Outputs: cache/eval_results/exp_NN_alpha1_eval.{jsonl,csv}
+         cache/eval_results/exp_NN_alpha1_alignment.{jsonl,csv}
+================================================================

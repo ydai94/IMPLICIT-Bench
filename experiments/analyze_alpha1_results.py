@@ -1,0 +1,442 @@
+"""α=1.0 results analysis driver.
+
+Reads alpha=1 bias + alignment files for steering experiments (4-11),
+loads the no-alpha baseline + rewrite experiments (0-3), dedupes every
+input on (case_id, alpha, seed), and renders a markdown report
+parallel in structure to reports/all_experiments_comparison.md.
+
+Re-runnable: idempotent, no side effects beyond the output markdown.
+
+Inputs:
+  cache/eval_results/exp_0[0-3]_eval.csv          (no alpha; unchanged naming)
+  cache/eval_results/exp_0[0-3]_alignment.csv
+  cache/eval_results/exp_0[4-9]_alpha1_eval.csv   (alpha=1.0)
+  cache/eval_results/exp_0[4-9]_alpha1_alignment.csv
+  cache/eval_results/exp_1[0-1]_alpha1_eval.csv
+  cache/eval_results/exp_1[0-1]_alpha1_alignment.csv
+  cache/eval_results/exp_0[4-9]_eval.csv          (alpha=2.0; for §12 contrast)
+  cache/eval_results/exp_0[4-9]_alignment.csv
+  cache/eval_results/exp_1[0-1]_eval.csv
+  cache/eval_results/exp_1[0-1]_alignment.csv
+
+Output:
+  reports/alpha1_comparison.md
+
+Note on exp_04 duplicates:
+  exp_04_alpha1_eval.{jsonl,csv} and exp_04_alpha1_alignment.{jsonl,csv}
+  contain 5,642 rows but only 5,493 unique (case_id, alpha, seed) keys.
+  149 duplicates leaked from a broken-launch flush during the first eval
+  pass. drop_duplicates(['case_id','alpha','seed']) handles this uniformly
+  across all input files.
+"""
+
+from pathlib import Path
+
+import pandas as pd
+
+RES = Path("/data/gpfs/projects/punim2888/stereoimage/cache/eval_results")
+OUT = Path("/data/gpfs/projects/punim2888/stereoimage/reports/alpha1_comparison.md")
+DEDUP_KEY = ["case_id", "alpha", "seed"]
+JOIN_KEY = ["case_id", "seed"]
+
+EXPERIMENT_NAMES = {
+    0: "baseline",
+    1: "llm_rewrite_no_kg",
+    2: "extracted_kg_llm_rewrite",
+    3: "gt_kg_llm_rewrite",
+    4: "extracted_kg_full_triple_sv",
+    5: "extracted_kg_tail_sv",
+    6: "gt_kg_full_triple_sv",
+    7: "gt_kg_tail_sv",
+    8: "extracted_kg_llm_pair_sv",
+    9: "gt_kg_llm_pair_sv",
+    10: "extracted_kg_gt_pair_sv",
+    11: "gt_kg_gt_pair_sv",
+}
+STEER_EXPS = list(range(4, 12))
+NON_STEER_EXPS = [0, 1, 2, 3]
+ALL_EXPS = NON_STEER_EXPS + STEER_EXPS
+
+
+def alpha1_path(exp, kind):
+    """Path for alpha=1 file (steering exps)."""
+    return RES / f"exp_{exp:02d}_alpha1_{kind}.csv"
+
+
+def std_path(exp, kind):
+    """Path for the standard (no _local, no _alpha1) file.
+    For exps 0-3: no alpha. For exps 4-11: alpha=2.0."""
+    return RES / f"exp_{exp:02d}_{kind}.csv"
+
+
+def load_for_alpha1(exp, kind):
+    """Load eval ('eval') or alignment ('alignment') CSV for the alpha=1 view.
+    Steering exps -> alpha1 file; non-steering exps -> std file (no alpha).
+    Always dedupes on (case_id, alpha, seed)."""
+    p = alpha1_path(exp, kind) if exp in STEER_EXPS else std_path(exp, kind)
+    df = pd.read_csv(p)
+    n0 = len(df)
+    df = df.drop_duplicates(DEDUP_KEY, keep="first").reset_index(drop=True)
+    n1 = len(df)
+    if n0 != n1:
+        print(f"  exp_{exp:02d} {kind}: dropped {n0 - n1} dup rows -> {n1}")
+    return df
+
+
+def load_for_alpha2(exp, kind):
+    """Steering exps only — load the std (alpha=2.0) file."""
+    df = pd.read_csv(std_path(exp, kind))
+    return df.drop_duplicates(DEDUP_KEY, keep="first").reset_index(drop=True)
+
+
+def per_exp_metrics(eval_df, align_df):
+    """Compute bias_mean, aligned_rate, composite, n_aligned,
+    bias_on_aligned, n_total, by joining on (case_id, seed)."""
+    e = eval_df[["case_id", "seed", "bias_type", "score"]].copy()
+    a = align_df[["case_id", "seed", "aligned"]].copy()
+    j = e.merge(a, on=JOIN_KEY, how="inner")
+    n = len(j)
+    bias_mean = j["score"].dropna().mean()
+    aligned_rate = j["aligned"].dropna().mean()
+    j_aligned = j[j["aligned"] == True]  # noqa: E712
+    n_aligned = len(j_aligned)
+    bias_on_aligned = j_aligned["score"].dropna().mean() if n_aligned else float("nan")
+    composite = aligned_rate * (1 - bias_mean / 5) * 100
+    return {
+        "n": n,
+        "bias_mean": bias_mean,
+        "aligned_rate": aligned_rate,
+        "n_aligned": n_aligned,
+        "bias_on_aligned": bias_on_aligned,
+        "composite": composite,
+        "joined": j,
+    }
+
+
+def main():
+    print("Loading α=1 view (steering exps + non-steering baselines)...")
+    a1_eval = {e: load_for_alpha1(e, "eval") for e in ALL_EXPS}
+    a1_align = {e: load_for_alpha1(e, "alignment") for e in ALL_EXPS}
+
+    print("Computing per-exp metrics...")
+    a1 = {e: per_exp_metrics(a1_eval[e], a1_align[e]) for e in ALL_EXPS}
+
+    base = a1[0]
+    bias_base = base["bias_mean"]
+    align_base = base["aligned_rate"]
+
+    # --- Section 12: alpha=2 contrast (steering exps only)
+    print("Loading α=2 view (steering exps for contrast)...")
+    a2 = {}
+    for e in STEER_EXPS:
+        ev = load_for_alpha2(e, "eval")
+        al = load_for_alpha2(e, "alignment")
+        a2[e] = per_exp_metrics(ev, al)
+
+    # ---- Render ----
+    md = []
+    md.append("# α=1.0 Stereotype Bias + Alignment Comparison (Steering Experiments)\n")
+    md.append(f"**Date:** auto-generated by `experiments/analyze_alpha1_results.py`\n")
+    md.append("**Dataset:** `data/merged_all_aggregated.csv` "
+              "(1,831 cases × 3 seeds = 5,493 images per experiment)\n")
+    md.append("**Evaluators (Qwen3-VL-30B-A3B-Instruct, OpenRouter API + local):**\n"
+              "- **Bias score**: 0–5 (lower = better).\n"
+              "- **Alignment**: binary aligned with `prompt_neutral` (higher = better).\n")
+    md.append(f"**Coverage:** 8 steering experiments (exp 4–11) × 5,493 images × 2 judges "
+              "= 87,888 VLM evaluations.\n")
+    md.append("> **Companion to** `reports/all_experiments_comparison.md` (which uses α=2.0 for "
+              "steering experiments). Non-steering experiments (0–3) do not use α and have the "
+              "same numbers in both reports.\n\n---\n")
+
+    # Section 1: Legend (same as master)
+    md.append("## 1. Experiment Legend\n")
+    md.append("| ID | Name | Family | KG source | Intervention | α |\n"
+              "|----|------|--------|-----------|--------------|---|\n"
+              "| 0 | baseline | none | — | raw prompt | — |\n"
+              "| 1 | llm_rewrite_no_kg | prompt rewrite | — | LLM rewrite without KG | — |\n"
+              "| 2 | extracted_kg_llm_rewrite | prompt rewrite | extracted | LLM rewrite + extracted KG | — |\n"
+              "| 3 | gt_kg_llm_rewrite | prompt rewrite | GT | LLM rewrite + GT KG | — |\n"
+              "| 4 | extracted_kg_full_triple_sv | steering vector | extracted | full-triple SV | **1.0** |\n"
+              "| 5 | extracted_kg_tail_sv | steering vector | extracted | tail-only SV | **1.0** |\n"
+              "| 6 | gt_kg_full_triple_sv | steering vector | GT | full-triple SV | **1.0** |\n"
+              "| 7 | gt_kg_tail_sv | steering vector | GT | tail-only SV | **1.0** |\n"
+              "| 8 | extracted_kg_llm_pair_sv | steering vector | extracted | LLM-generated pair SV | **1.0** |\n"
+              "| 9 | gt_kg_llm_pair_sv | steering vector | GT | LLM-generated pair SV | **1.0** |\n"
+              "| 10 | extracted_kg_gt_pair_sv | steering vector | extracted | GT pair SV | **1.0** |\n"
+              "| 11 | gt_kg_gt_pair_sv | steering vector | GT | GT pair SV | **1.0** |\n\n---\n")
+
+    # Section 2: Joint Results — ranked by composite
+    md.append("## 2. Joint Results — ranked by composite score\n")
+    md.append("**Composite** = `aligned_rate × (1 − bias_mean/5) × 100`. "
+              f"Baseline = {base['composite']:.2f}.\n\n")
+    rows = sorted(ALL_EXPS, key=lambda e: -a1[e]["composite"])
+    md.append("| Rank | Exp | Name | Bias mean | Bias Δ vs base | Aligned % | Align Δ vs base | **Composite** |\n"
+              "|---:|---:|------|------:|---------:|--------:|----------:|----:|\n")
+    rank = 0
+    for e in rows:
+        m = a1[e]
+        bias_d = (m["bias_mean"] - bias_base) / bias_base * 100
+        align_d = (m["aligned_rate"] - align_base) * 100
+        if e == 0:
+            md.append(f"| — | 0 | **baseline** | {m['bias_mean']:.3f} | 0.0% | "
+                      f"**{m['aligned_rate']*100:.1f}%** | 0.0 pts | **{m['composite']:.2f}** |\n")
+        else:
+            rank += 1
+            star = "**" if rank <= 3 else ""
+            md.append(f"| {rank} | {star}{e}{star} | {EXPERIMENT_NAMES[e]} | "
+                      f"{m['bias_mean']:.3f} | {bias_d:+.1f}% | "
+                      f"{m['aligned_rate']*100:.1f}% | {align_d:+.1f} pts | "
+                      f"{star}{m['composite']:.2f}{star} |\n")
+    md.append("\n---\n")
+
+    # Section 3: Bias on aligned-only
+    md.append("## 3. Bias on *aligned-only* images — the real debiasing signal\n")
+    md.append("Filter to images the alignment judge said correctly depict the neutral prompt, "
+              "then compute mean bias on that subset.\n\n")
+    md.append("| Exp | Name | n (aligned) | Bias on aligned | Bias on all | Hidden cost |\n"
+              "|----:|------|----:|-----:|-----:|-----:|\n")
+    rows3 = sorted(ALL_EXPS, key=lambda e: a1[e]["bias_on_aligned"])
+    for e in rows3:
+        m = a1[e]
+        gap = m["bias_on_aligned"] - m["bias_mean"]
+        md.append(f"| {e} | {EXPERIMENT_NAMES[e]} | {m['n_aligned']:,} | "
+                  f"{m['bias_on_aligned']:.3f} | {m['bias_mean']:.3f} | "
+                  f"{gap:+.3f} |\n")
+    md.append("\n---\n")
+
+    # Section 4: Alignment flip vs baseline
+    md.append("## 4. Alignment flip analysis (per image vs baseline)\n")
+    md.append("For each shared `(case_id, seed)`, compare whether the alignment verdict "
+              "flipped vs baseline.\n\n")
+    md.append("| Exp | Name | Kept aligned | **Lost alignment** | Recovered | Stayed misaligned |\n"
+              "|---:|------|------:|------:|------:|------:|\n")
+    base_align = a1[0]["joined"][["case_id", "seed", "aligned"]].rename(
+        columns={"aligned": "aligned_base"})
+    flip_rows = []
+    for e in ALL_EXPS:
+        if e == 0:
+            continue
+        m_align = a1[e]["joined"][["case_id", "seed", "aligned"]]
+        j = base_align.merge(m_align, on=JOIN_KEY, how="inner")
+        n = len(j)
+        kept = ((j["aligned_base"] == True) & (j["aligned"] == True)).sum()  # noqa: E712
+        lost = ((j["aligned_base"] == True) & (j["aligned"] == False)).sum()  # noqa: E712
+        recov = ((j["aligned_base"] == False) & (j["aligned"] == True)).sum()  # noqa: E712
+        stayed = ((j["aligned_base"] == False) & (j["aligned"] == False)).sum()  # noqa: E712
+        flip_rows.append((e, kept / n, lost / n, recov / n, stayed / n))
+    for e, kept, lost, recov, stayed in sorted(flip_rows, key=lambda r: -r[1]):
+        md.append(f"| {e} | {EXPERIMENT_NAMES[e]} | {kept*100:.1f}% | "
+                  f"**{lost*100:.1f}%** | {recov*100:.1f}% | {stayed*100:.1f}% |\n")
+    md.append("\n---\n")
+
+    # Section 5: Score distributions
+    md.append("## 5. Score distributions (bias)\n\n")
+    md.append("| Exp | 0 | 1 | 2 | 3 | 4 | 5 |\n"
+              "|----:|---:|---:|---:|---:|---:|---:|\n")
+    for e in ALL_EXPS:
+        ev = a1_eval[e]
+        scores = ev["score"].dropna()
+        n = len(scores)
+        cells = []
+        for s in range(6):
+            pct = (scores == s).sum() / n * 100 if n else 0
+            cells.append(f"{pct:.1f}")
+        name = ("**" + EXPERIMENT_NAMES[e] + "**") if e == 0 else EXPERIMENT_NAMES[e]
+        md.append(f"| {e} {name} | " + " | ".join(cells) + " |\n")
+    md.append("\n---\n")
+
+    # Section 6: Alignment-rate by bias type
+    md.append("## 6. Alignment-rate by bias type\n\n")
+    bias_types = sorted(a1_align[0]["bias_type"].dropna().unique())
+    counts_per_type = a1_align[0].groupby("bias_type").size().to_dict()
+    md.append("| Bias type | n | base | " + " | ".join(str(e) for e in range(1, 12)) + " |\n")
+    md.append("|-----------|---:|-----:|" + "|".join(["---:"] * 11) + "|\n")
+    for bt in bias_types:
+        cells = []
+        cells.append(f"{counts_per_type.get(bt, 0)}")
+        for e in [0] + list(range(1, 12)):
+            sub = a1_align[e][a1_align[e]["bias_type"] == bt]
+            if len(sub):
+                rate = sub["aligned"].mean() * 100
+                cells.append(f"{rate:.1f}")
+            else:
+                cells.append("—")
+        md.append(f"| {bt} | " + " | ".join(cells) + " |\n")
+    md.append("\n---\n")
+
+    # Section 7: bias mean by bias type
+    md.append("## 7. By Bias Type (bias mean)\n\n")
+    md.append("| Bias type | base | " + " | ".join(str(e) for e in range(1, 12)) + " |\n")
+    md.append("|-----------|-----:|" + "|".join(["---:"] * 11) + "|\n")
+    for bt in bias_types:
+        cells = []
+        for e in [0] + list(range(1, 12)):
+            sub = a1_eval[e][a1_eval[e]["bias_type"] == bt]
+            if len(sub):
+                cells.append(f"{sub['score'].dropna().mean():.2f}")
+            else:
+                cells.append("—")
+        md.append(f"| {bt} | " + " | ".join(cells) + " |\n")
+    md.append("\n---\n")
+
+    # Section 8: Method ranking under Extracted KG
+    md.append("## 8. Method ranking under Extracted KG (realistic setup)\n")
+    md.append("Five methods that consume extracted KG, plus no-KG rewrite (Exp 1) and "
+              "baseline (Exp 0) as references. Ranked by composite.\n\n")
+    md.append("| Rank | Exp | Method | Bias mean | Aligned % | **Composite** | Bias on aligned |\n"
+              "|---:|---:|--------|----------:|----------:|----------:|----------------:|\n")
+    extracted_kg_exps = [2, 4, 5, 8, 10]
+    refs = [(1, "*no-KG rewrite (ref)*"), (0, "*baseline (ref)*")]
+    rank = 0
+    rows8 = sorted(extracted_kg_exps, key=lambda e: -a1[e]["composite"])
+    for e in rows8:
+        rank += 1
+        m = a1[e]
+        md.append(f"| {rank} | **{e}** | **{EXPERIMENT_NAMES[e]}** | {m['bias_mean']:.3f} | "
+                  f"{m['aligned_rate']*100:.1f}% | **{m['composite']:.2f}** | "
+                  f"{m['bias_on_aligned']:.3f} |\n")
+    for e, lbl in refs:
+        m = a1[e]
+        md.append(f"| — | *{e}* | {lbl} | *{m['bias_mean']:.3f}* | "
+                  f"*{m['aligned_rate']*100:.1f}%* | *{m['composite']:.2f}* | "
+                  f"*{m['bias_on_aligned']:.3f}* |\n")
+    md.append("\n---\n")
+
+    # Section 9: Method ranking under GT KG
+    md.append("## 9. Method ranking under GT KG (ideal / upper bound)\n")
+    md.append("Five methods consuming GT KG annotations.\n\n")
+    md.append("| Rank | Exp | Method | Bias mean | Aligned % | **Composite** | Bias on aligned |\n"
+              "|---:|---:|--------|----------:|----------:|----------:|----------------:|\n")
+    gt_kg_exps = [3, 6, 7, 9, 11]
+    rank = 0
+    rows9 = sorted(gt_kg_exps, key=lambda e: -a1[e]["composite"])
+    for e in rows9:
+        rank += 1
+        m = a1[e]
+        md.append(f"| {rank} | **{e}** | **{EXPERIMENT_NAMES[e]}** | {m['bias_mean']:.3f} | "
+                  f"{m['aligned_rate']*100:.1f}% | **{m['composite']:.2f}** | "
+                  f"{m['bias_on_aligned']:.3f} |\n")
+    md.append("\n---\n")
+
+    # Section 10: SV flavor ranking within KG source
+    md.append("## 10. Best steering-vector flavor — within each KG source\n\n")
+    md.append("### Under Extracted KG\n\n")
+    md.append("| Rank | Exp | SV flavor | Bias | Align % | **Composite** |\n"
+              "|---:|---:|-----------|-----:|--------:|----------:|\n")
+    sv_extracted = [(4, "full-triple"), (5, "tail"), (8, "LLM-pair"), (10, "GT-pair")]
+    for r, (e, flav) in enumerate(sorted(sv_extracted, key=lambda x: -a1[x[0]]["composite"]), 1):
+        m = a1[e]
+        md.append(f"| {r} | **{e}** | **{flav}** | {m['bias_mean']:.2f} | "
+                  f"{m['aligned_rate']*100:.1f}% | **{m['composite']:.2f}** |\n")
+    md.append("\n### Under GT KG\n\n")
+    md.append("| Rank | Exp | SV flavor | Bias | Align % | **Composite** |\n"
+              "|---:|---:|-----------|-----:|--------:|----------:|\n")
+    sv_gt = [(6, "full-triple"), (7, "tail"), (9, "LLM-pair"), (11, "GT-pair")]
+    for r, (e, flav) in enumerate(sorted(sv_gt, key=lambda x: -a1[x[0]]["composite"]), 1):
+        m = a1[e]
+        md.append(f"| {r} | **{e}** | **{flav}** | {m['bias_mean']:.2f} | "
+                  f"{m['aligned_rate']*100:.1f}% | **{m['composite']:.2f}** |\n")
+    md.append("\n---\n")
+
+    # Section 11: Prompt rewrite vs SV (within KG source)
+    md.append("## 11. Prompt rewrite vs Steering vector — within each KG source\n\n")
+    md.append("Rewrite (no α) vs the best α=1 SV in the same KG source.\n\n")
+    md.append("| KG source | Rewrite (exp) | Best SV (exp) | Δ composite (SV − rewrite) |\n"
+              "|-----------|:-------------:|:-------------:|---------------------------:|\n")
+    best_sv_extracted = max(sv_extracted, key=lambda x: a1[x[0]]["composite"])
+    best_sv_gt = max(sv_gt, key=lambda x: a1[x[0]]["composite"])
+    md.append(f"| **Extracted** | 2: {a1[2]['composite']:.2f} | "
+              f"Exp {best_sv_extracted[0]} {best_sv_extracted[1]} "
+              f"({a1[best_sv_extracted[0]]['composite']:.2f}) | "
+              f"**{a1[best_sv_extracted[0]]['composite'] - a1[2]['composite']:+.2f}** |\n")
+    md.append(f"| **GT** | 3: {a1[3]['composite']:.2f} | "
+              f"Exp {best_sv_gt[0]} {best_sv_gt[1]} "
+              f"({a1[best_sv_gt[0]]['composite']:.2f}) | "
+              f"**{a1[best_sv_gt[0]]['composite'] - a1[3]['composite']:+.2f}** |\n")
+    md.append(f"| None (no-KG) | 1: {a1[1]['composite']:.2f} | — | N/A |\n\n---\n")
+
+    # Section 12: alpha=1 vs alpha=2 contrast (NEW)
+    md.append("## 12. α=1 vs α=2 contrast (steering experiments)\n")
+    md.append("Per-exp comparison of α=1 (this report) vs α=2 (master report). "
+              "Negative `Δ bias` means α=2 reduces bias more; positive `Δ aligned` "
+              "means α=1 retains more alignment.\n\n")
+    md.append("| Exp | Name | α=1 bias | α=2 bias | Δ bias (α=2 − α=1) | "
+              "α=1 aligned % | α=2 aligned % | Δ aligned (α=1 − α=2) | "
+              "α=1 composite | α=2 composite | Δ composite (α=1 − α=2) |\n"
+              "|---:|------|------:|------:|------:|------:|------:|------:|------:|------:|------:|\n")
+    for e in STEER_EXPS:
+        m1, m2 = a1[e], a2[e]
+        d_bias = m2["bias_mean"] - m1["bias_mean"]
+        d_align = (m1["aligned_rate"] - m2["aligned_rate"]) * 100
+        d_comp = m1["composite"] - m2["composite"]
+        md.append(f"| {e} | {EXPERIMENT_NAMES[e]} | "
+                  f"{m1['bias_mean']:.3f} | {m2['bias_mean']:.3f} | {d_bias:+.3f} | "
+                  f"{m1['aligned_rate']*100:.1f}% | {m2['aligned_rate']*100:.1f}% | "
+                  f"{d_align:+.1f} pts | "
+                  f"{m1['composite']:.2f} | {m2['composite']:.2f} | "
+                  f"{d_comp:+.2f} |\n")
+    md.append("\n---\n")
+
+    # Section 13: Headline numbers (auto-generated; manual interpretation in master report)
+    md.append("## 13. Headline numbers (auto-summary)\n\n")
+    extracted_winner = max([2, 4, 5, 8, 10], key=lambda e: a1[e]["composite"])
+    gt_winner = max([3, 6, 7, 9, 11], key=lambda e: a1[e]["composite"])
+    md.append(f"- **Realistic (extracted KG) winner at α=1**: Exp {extracted_winner} "
+              f"({EXPERIMENT_NAMES[extracted_winner]}) — composite "
+              f"**{a1[extracted_winner]['composite']:.2f}** "
+              f"(baseline {base['composite']:.2f}).\n")
+    md.append(f"- **Ideal (GT KG) winner at α=1**: Exp {gt_winner} "
+              f"({EXPERIMENT_NAMES[gt_winner]}) — composite "
+              f"**{a1[gt_winner]['composite']:.2f}**.\n")
+    # Count exps where alpha=1 beats alpha=2 on composite
+    def _list_or_none(lst):
+        return ", ".join(str(e) for e in sorted(lst)) if lst else "(none)"
+    a1_better = [e for e in STEER_EXPS if a1[e]["composite"] > a2[e]["composite"]]
+    md.append(f"- **α=1 outperforms α=2 on composite for {len(a1_better)}/{len(STEER_EXPS)} "
+              f"steering exps**: {_list_or_none(a1_better)}.\n")
+    a1_higher_align = [e for e in STEER_EXPS if a1[e]["aligned_rate"] > a2[e]["aligned_rate"]]
+    md.append(f"- **α=1 retains more alignment than α=2 in "
+              f"{len(a1_higher_align)}/{len(STEER_EXPS)} steering exps**: "
+              f"{_list_or_none(a1_higher_align)}.\n")
+    a1_lower_bias = [e for e in STEER_EXPS if a1[e]["bias_mean"] < a2[e]["bias_mean"]]
+    md.append(f"- **α=1 produces lower bias than α=2 in "
+              f"{len(a1_lower_bias)}/{len(STEER_EXPS)} steering exps**: "
+              f"{_list_or_none(a1_lower_bias)}.\n\n")
+    md.append("Detailed prose interpretation lives in the master report; "
+              "this report supplies the α=1 numbers it needs.\n\n---\n")
+
+    # Section 14: Raw files + footnote
+    md.append("## 14. Raw Files\n\n")
+    md.append("- α=1 bias scores (steering exps): "
+              "`cache/eval_results/exp_NN_alpha1_eval.{csv,jsonl}` (NN ∈ 04..11)\n")
+    md.append("- α=1 alignment (steering exps): "
+              "`cache/eval_results/exp_NN_alpha1_alignment.{csv,jsonl}` (NN ∈ 04..11)\n")
+    md.append("- Non-steering baselines (α-less): "
+              "`cache/eval_results/exp_NN_{eval,alignment}.{csv,jsonl}` (NN ∈ 00..03)\n")
+    md.append("- α=2 contrast (§12): "
+              "`cache/eval_results/exp_NN_{eval,alignment}.{csv,jsonl}` (NN ∈ 04..11)\n")
+    md.append("- Input manifest: `data/merged_all_aggregated.csv` (1,831 cases)\n")
+    md.append("- Analysis driver: `experiments/analyze_alpha1_results.py` (re-runnable)\n\n---\n")
+
+    md.append("## Footnote — exp_04 duplicate handling\n\n")
+    md.append("`cache/eval_results/exp_04_alpha1_eval.{jsonl,csv}` and the matching alignment "
+              "files contain **5,642 rows but only 5,493 unique** `(case_id, alpha, seed)` "
+              "keys. The 149 duplicates leaked from a broken-launch flush during the first "
+              "local-Qwen evaluation pass on 2026-05-02 (a SLURM image-generation job "
+              "overwrote the manifest mid-run). All other steering experiments are clean. "
+              "This script applies "
+              "`drop_duplicates(['case_id','alpha','seed'])` uniformly to every input file, "
+              "so the metrics above are computed on the correct 5,493-image population for "
+              "exp_04 too.\n")
+
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text("".join(md))
+    print(f"\nWrote {OUT} ({len(md)} chunks).")
+    print(f"Per-exp composite (α=1):")
+    for e in ALL_EXPS:
+        print(f"  exp_{e:02d} {EXPERIMENT_NAMES[e]:<32} bias={a1[e]['bias_mean']:.3f}  "
+              f"aligned={a1[e]['aligned_rate']*100:5.1f}%  comp={a1[e]['composite']:5.2f}")
+
+
+if __name__ == "__main__":
+    main()
