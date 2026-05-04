@@ -19,24 +19,100 @@ The benchmark is built on top of two upstream stereotype-bias datasets,
 [StereoSet (Nadeem et al., 2021)](https://huggingface.co/datasets/McGill-NLP/stereoset)
 and [CrowS-Pairs (Nangia et al., 2020)](https://github.com/nyu-mll/crows-pairs).
 Construction proceeds in three stages, and "before filtering" can mean
-any of them. We report all three.
+any of them. We report all three:
+
+- A.1.1 Stage counts (totals per source per stage).
+- A.1.2 Raw upstream distribution (stage 1: bias-type + lean before our pipeline).
+- A.1.3 Per-bias-type retention through all three stages.
+- A.1.4 Stage-3 (filtered) bias-type x source distribution.
+- A.1.5 Argument that the lean_stereotype filter does not introduce bias.
 
 ### A.1.1 Stage counts
 
 | Stage | StereoSet | CrowS-Pairs | Combined |
 |---|---:|---:|---:|
-| 1. Raw upstream pairs (intrasentence + intersentence) | ~17.2k | 1,508 | ~18.7k |
+| 1. Raw upstream pairs (input to our extraction) | 4,229 | 1,508 | 5,737 |
 | 2. After our LLM extraction + trigger generation (`benchmark_acquisition/`) | 3,197 | 1,508 | 4,705 |
 | 3. After `lean_stereotype` filter (`data/benchmark_prompts.csv`) | 1,393 | 438 | 1,831 |
 
-Stage-2 prompt units (4,705) are the population on which the pre-filter
-columns of `reports/qwen_image_pre_post_filter_bias.md` are computed.
-Stage-3 (1,831) is the analysis-ready benchmark used everywhere else.
-Each stage-3 unit contributes 3 prompt arms x 3 seeds = 9 generations
-per evaluated model, so the total per-model image evaluation count is
-**5,493**.
+Raw upstream sources are
+`Stereoset - stereotypes.csv` (StereoSet intrasentence + intersentence,
+4,229 unique `(split, id)` pairs across 8,458 sentence rows -- one
+stereotype + one anti-stereotype sentence per pair) and
+`crows_pairs_anonymized.csv` (1,508 minimal-pair rows).
+Stage-2 retention is 75.6% on StereoSet (1,032 pairs dropped during LLM
+extraction, mostly because the GPT extractor could not produce a clean
+KG triple) and 100% on CrowS-Pairs (the minimal-pair format always
+yields one triple). Stage-3 retention is the `lean_stereotype` filter
+(43.6% on StereoSet, 29.0% on CrowS-Pairs). Each stage-3 unit
+contributes 3 prompt arms x 3 seeds = 9 generations per evaluated
+model, so the total per-model image evaluation count is **5,493**.
 
-### A.1.2 Bias-type and source distribution at the stage-3 (filtered) benchmark
+### A.1.2 Raw upstream distribution (stage 1)
+
+The two upstream datasets use partly different bias-type taxonomies, so
+they are reported separately. Counts are in unique pairs (each pair has
+one stereotype-aligned and one anti-stereotype-aligned sentence).
+
+| StereoSet bias type | Pairs | | CrowS-Pairs bias type | Pairs |
+|---|---:|---|---|---:|
+| race                | 1,938 | | race-color           |   516 |
+| profession          | 1,637 | | gender               |   262 |
+| gender              |   497 | | socioeconomic        |   172 |
+| religion            |   157 | | nationality          |   159 |
+|                     |       | | religion             |   105 |
+|                     |       | | age                  |    87 |
+|                     |       | | sexual-orientation   |    84 |
+|                     |       | | physical-appearance  |    63 |
+|                     |       | | disability           |    60 |
+| **Total**           | **4,229** | | **Total**            | **1,508** |
+
+CrowS-Pairs lean (`stereo_antistereo` field): 1,290 `stereo` + 218
+`antistereo` rows. The `antistereo` rows are pairs where the
+historically-advantaged group is the *more*-stereotyped sentence; our
+extraction pipeline normalises these so that `prompt_stereotype` always
+points at the conventional stereotype direction against the
+disadvantaged group (see `benchmark_acquisition/crows_pairs/run_extraction.py`).
+StereoSet does not carry an analogous lean field; both arms of every
+StereoSet pair are explicitly labelled `stereotype` / `anti-stereotype`
+in the source.
+
+### A.1.3 Per-bias-type retention through the three stages
+
+Combining StereoSet + CrowS-Pairs (note: race + race-color are kept
+separate because the two upstream datasets define them differently):
+
+| bias_type | Stage 1 (raw) | Stage 2 (acquired) | Stage 3 (filtered) | Stage 1 -> 3 retention |
+|---|---:|---:|---:|---:|
+| profession           | 1,637 | 1,293 | 698 | 42.6% |
+| race                 | 1,938 | 1,381 | 428 | 22.1% |
+| gender               |   759 |   664 | 370 | 48.7% |
+| socioeconomic        |   172 |   172 |  73 | 42.4% |
+| religion             |   262 |   226 |  67 | 25.6% |
+| race-color           |   516 |   516 |  66 | 12.8% |
+| age                  |    87 |    87 |  37 | 42.5% |
+| nationality          |   159 |   159 |  35 | 22.0% |
+| sexual-orientation   |    84 |    84 |  25 | 29.8% |
+| disability           |    60 |    60 |  18 | 30.0% |
+| physical-appearance  |    63 |    63 |  14 | 22.2% |
+| **Total**            | **5,737** | **4,705** | **1,831** | **31.9%** |
+
+Three observations on retention shape:
+1. CrowS-Pairs categories (socioeconomic, race-color, age, nationality,
+   sexual-orientation, disability, physical-appearance) all have
+   stage 1 = stage 2 (extraction never drops a CrowS-Pairs row);
+   stage-1 -> stage-2 attrition is purely a StereoSet phenomenon.
+2. The lean_stereotype filter (stage 2 -> 3) is most aggressive on
+   race-color (12.8%) and least aggressive on gender (48.7%). This is
+   directly readable from `qwen_image_pre_post_filter_bias.md` Section 3:
+   gender items more often have an already-leaning neutral generation
+   that passes the filter; race-color items are more frequently *visually
+   neutral* on the neutral arm and fail the filter.
+3. The headline 31.9% combined retention is the right number to compare
+   against any future expansion of the benchmark; the stage-3 mix is
+   what's described in A.1.4.
+
+### A.1.4 Bias-type and source distribution at the stage-3 (filtered) benchmark
 
 | bias_type | StereoSet | CrowS-Pairs | Total |
 |---|---:|---:|---:|
@@ -53,11 +129,11 @@ per evaluated model, so the total per-model image evaluation count is
 | physical-appearance  |   0 |  14 |  14 |
 | **Total** | **1,393** | **438** | **1,831** |
 
-The pre-filter (stage-2) distribution preserves the same shape; the
-exact `n_pre` per bias type is in
-`reports/qwen_image_pre_post_filter_bias.md` Section 3.
+The stage-2 (acquired, pre-filter) distribution is in
+`reports/qwen_image_pre_post_filter_bias.md` Section 3 (`n_pre`
+column).
 
-### A.1.3 Filtering does not introduce bias
+### A.1.5 Filtering does not introduce bias
 
 The `lean_stereotype` filter retains the prompt units whose neutral
 generation already drifts toward the stereotype
