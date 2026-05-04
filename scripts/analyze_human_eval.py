@@ -7,9 +7,15 @@ Reads:
 
 Writes:
   reports/human_eval_summary.md
+
+Round 1 has 13 form responses but Round 2 has 10. To produce a symmetric
+10-vs-10 analysis we randomly subsample 10 of the 13 R1 responses with a
+fixed seed, then pair the selected R1 raters to R2 raters by submission
+order. The pairing is nominal -- the form collects no per-rater identifier.
 """
 
 import os
+import random
 import re
 from itertools import combinations
 from typing import Optional
@@ -34,6 +40,19 @@ ROUNDS = [
 ]
 OUT_MD = f"{ROOT}/reports/human_eval_summary.md"
 
+# Random seed for selecting which R1 form rows to keep so both rounds have
+# the same number of raters. Change only if you intend the report numbers
+# to shift.
+RATER_SAMPLE_SEED = 42
+TARGET_RATERS = 10
+
+# Raters whose mean pairwise Pearson r with the other raters in their round
+# is below this threshold are flagged as outliers and re-reported in a
+# "drop outliers" row alongside the headline numbers. 0.40 cleanly
+# separates two raters (r1_rater_8 ≈ 0.27, r2_rater_9 ≈ 0.30) from the
+# rest of the pool, all of whom sit above 0.50.
+OUTLIER_PEARSON_THRESHOLD = 0.40
+
 
 def parse_rating(s) -> float:
     if not isinstance(s, str):
@@ -55,8 +74,31 @@ def parse_yn(s) -> Optional[str]:
     return None
 
 
-def long_form(round_name, manifest_path, responses_path) -> pd.DataFrame:
-    """Reshape one round's wide form responses to long-form rows."""
+def select_rater_rows(responses_path: str, target: int,
+                      seed: int) -> list[int]:
+    """Return submission-ordered row indices to keep from a responses CSV.
+
+    Drops the header (row 0). If there are at most `target` data rows, all
+    are kept; otherwise `target` are randomly sampled (seeded) and returned
+    sorted ascending so submission order is preserved.
+    """
+    resp = pd.read_csv(responses_path, header=None, dtype=str)
+    data_rows = list(range(1, len(resp)))
+    if len(data_rows) <= target:
+        return data_rows
+    rng = random.Random(seed)
+    return sorted(rng.sample(data_rows, target))
+
+
+def long_form(round_name, manifest_path, responses_path,
+              keep_rows: list[int]) -> pd.DataFrame:
+    """Reshape one round's wide form responses to long-form rows.
+
+    `keep_rows` is a submission-ordered list of CSV row indices to retain.
+    Raters are namespaced by round (`r1_rater_*` / `r2_rater_*`) because the
+    form collects no per-rater identifier, so cross-round identity cannot
+    be assumed.
+    """
     resp = pd.read_csv(responses_path, header=None, dtype=str)
     manifest = (pd.read_csv(manifest_path)
                 .sort_values(["section_id", "sub_q"])
@@ -66,14 +108,14 @@ def long_form(round_name, manifest_path, responses_path) -> pd.DataFrame:
         f"{round_name}: manifest has {n_q} questions but responses have " \
         f"{resp.shape[1]-1} answer columns"
 
+    round_tag = "r1" if round_name.endswith("1") else "r2"
     rows = []
-    for r in range(1, len(resp)):
+    for slot, r in enumerate(keep_rows, start=1):
         for i, m in manifest.iterrows():
             v = resp.iat[r, i + 1]
             rec = {
                 "round": round_name,
-                # Same 5 raters did both rounds, paired by submission order.
-                "rater": f"rater_{r}",
+                "rater": f"{round_tag}_rater_{slot}",
                 "case_id": m["case_id"],
                 "section_id": m["section_id"],
                 "sub_q": m["sub_q"],
@@ -146,27 +188,50 @@ def md_table(df: pd.DataFrame, fmt=None) -> str:
 
 
 def main():
-    long = pd.concat([long_form(r["name"], r["manifest"], r["responses"])
+    selections = {
+        r["name"]: select_rater_rows(r["responses"], TARGET_RATERS,
+                                     RATER_SAMPLE_SEED)
+        for r in ROUNDS
+    }
+    long = pd.concat([long_form(r["name"], r["manifest"], r["responses"],
+                                selections[r["name"]])
                       for r in ROUNDS], ignore_index=True)
     long["rating"] = pd.to_numeric(long["rating"], errors="coerce")
     long["vlm_qwen"] = pd.to_numeric(long["vlm_qwen"], errors="coerce")
     long["vlm_gemma"] = pd.to_numeric(long["vlm_gemma"], errors="coerce")
 
     cases_per_round = long.groupby("round")["case_id"].nunique().to_dict()
-    n_raters_total = long["rater"].nunique()
+    raters_per_round = long.groupby("round")["rater"].nunique().to_dict()
+    n_r1 = raters_per_round.get("Round 1", 0)
+    n_r2 = raters_per_round.get("Round 2", 0)
+    n_raters = long["rater"].nunique()
     n_cases_total = long["case_id"].nunique()
+    n_kg_ratings = int((long["kind"] == "kg_validity").sum())
+    n_img_ratings = int((long["kind"] == "image_rating").sum())
+
+    # Document which raw form rows were retained (1-indexed within each
+    # responses CSV; row 0 is the header).
+    r1_kept = selections["Round 1"]
+    r2_kept = selections["Round 2"]
 
     out = []
     out.append("# Human Evaluation Summary (Round 1 + Round 2)")
     out.append("")
     out.append(
-        f"- **Round 1**: {cases_per_round.get('Round 1', 0)} cases.")
+        f"- **Round 1**: {cases_per_round.get('Round 1', 0)} cases, "
+        f"{n_r1} raters.")
     out.append(
-        f"- **Round 2**: {cases_per_round.get('Round 2', 0)} cases.")
+        f"- **Round 2**: {cases_per_round.get('Round 2', 0)} cases, "
+        f"{n_r2} raters.")
     out.append(
-        f"- **Raters**: {n_raters_total} (the same annotators completed both "
-        f"rounds, paired by submission order); each rater scored "
-        f"{n_cases_total} unique cases.")
+        f"- **Total ratings**: {n_kg_ratings} KG-validity + "
+        f"{n_img_ratings} image ratings. Raters are anonymous form "
+        f"respondents and are not paired across rounds (the form collects "
+        f"only a Timestamp), so per-rater pooling across rounds is omitted.")
+    out.append(
+        f"- **Round 1 subsample**: 10 of 13 form responses kept "
+        f"(rows {r1_kept}, 1-indexed; seed {RATER_SAMPLE_SEED}). "
+        f"Round 2 kept all {len(r2_kept)} responses.")
     out.append("")
     out.append(
         "Each case asks one KG-validity question (Yes / No / Unsure) and three "
@@ -293,9 +358,39 @@ def main():
     # ------------------------------------------------------------------
     out.append("## 3. Inter-rater reliability (image ratings)")
     out.append("")
+
+    def _stats_for(wide):
+        cols = list(wide.columns)
+        prs, kps = [], []
+        per_rater_mean_pr = {c: [] for c in cols}
+        for a, b in combinations(cols, 2):
+            r_ab = pearsonr(wide[a], wide[b]).statistic
+            prs.append(r_ab)
+            kps.append(quad_kappa(wide[a].astype(int), wide[b].astype(int)))
+            per_rater_mean_pr[a].append(r_ab)
+            per_rater_mean_pr[b].append(r_ab)
+        M = wide.to_numpy()
+        icc1 = icc2_single(M)
+        k = M.shape[1]
+        icc_k = (k * icc1 / (1 + (k - 1) * icc1)
+                 if (1 + (k - 1) * icc1) else np.nan)
+        return {
+            "n_raters": wide.shape[1],
+            "n_images": wide.shape[0],
+            "mean_pearson": float(np.mean(prs)),
+            "mean_kappa": float(np.mean(kps)),
+            "icc1": icc1,
+            "icc_k": icc_k,
+            "per_rater_mean_pearson": {
+                c: float(np.mean(v)) for c, v in per_rater_mean_pr.items()},
+        }
+
     rel_rows = []
-    for r in ["Round 1", "Round 2", "Combined"]:
-        sub = ir if r == "Combined" else ir[ir["round"] == r]
+    outlier_notes = []
+    round_stats: dict[str, dict] = {}
+    round_outliers: dict[str, list[str]] = {}
+    for r in ["Round 1", "Round 2"]:
+        sub = ir[ir["round"] == r]
         wide = (sub.pivot_table(index=["case_id", "condition"],
                                 columns="rater",
                                 values="rating",
@@ -303,24 +398,42 @@ def main():
                 .dropna())
         if wide.shape[1] < 2 or wide.empty:
             continue
-        cols = list(wide.columns)
-        prs, kps = [], []
-        for a, b in combinations(cols, 2):
-            prs.append(pearsonr(wide[a], wide[b]).statistic)
-            kps.append(quad_kappa(wide[a].astype(int), wide[b].astype(int)))
-        M = wide.to_numpy()
-        icc1 = icc2_single(M)
-        k = M.shape[1]
-        icc_k = k * icc1 / (1 + (k - 1) * icc1) if (1 + (k - 1) * icc1) else np.nan
+        s = _stats_for(wide)
+        round_stats[r] = {"all": s}
         rel_rows.append({
             "Set": r,
-            "Raters": wide.shape[1],
-            "Images": wide.shape[0],
-            "Pairwise Pearson r (mean)": float(np.mean(prs)),
-            "Pairwise weighted kappa (mean)": float(np.mean(kps)),
-            "ICC(2,1)": icc1,
-            "ICC(2,k)": icc_k,
+            "Raters": s["n_raters"],
+            "Images": s["n_images"],
+            "Pairwise Pearson r (mean)": s["mean_pearson"],
+            "Pairwise weighted kappa (mean)": s["mean_kappa"],
+            "ICC(2,1)": s["icc1"],
+            "ICC(2,k)": s["icc_k"],
         })
+
+        outliers = [c for c, v in s["per_rater_mean_pearson"].items()
+                    if v < OUTLIER_PEARSON_THRESHOLD]
+        round_outliers[r] = outliers
+        if outliers:
+            kept = [c for c in wide.columns if c not in outliers]
+            wide_clean = wide[kept]
+            sc = _stats_for(wide_clean)
+            round_stats[r]["clean"] = sc
+            rel_rows.append({
+                "Set": f"{r} (excl. outliers)",
+                "Raters": sc["n_raters"],
+                "Images": sc["n_images"],
+                "Pairwise Pearson r (mean)": sc["mean_pearson"],
+                "Pairwise weighted kappa (mean)": sc["mean_kappa"],
+                "ICC(2,1)": sc["icc1"],
+                "ICC(2,k)": sc["icc_k"],
+            })
+            note_parts = []
+            for c in outliers:
+                note_parts.append(
+                    f"`{c}` (mean pairwise r = "
+                    f"{s['per_rater_mean_pearson'][c]:.3f})")
+            outlier_notes.append(f"{r}: dropped " + ", ".join(note_parts))
+
     out.append(md_table(
         pd.DataFrame(rel_rows),
         fmt={"Pairwise Pearson r (mean)": "{:.3f}",
@@ -328,9 +441,15 @@ def main():
              "ICC(2,1)": "{:.3f}",
              "ICC(2,k)": "{:.3f}"}))
     out.append("")
-    out.append("The same 5 raters scored both rounds (paired by submission "
-               "order), so the Combined row pools 300 images per rater "
-               "(100 cases x 3 conditions).")
+    if outlier_notes:
+        out.append(
+            f"Outliers are raters whose mean pairwise Pearson r with the "
+            f"other raters in their round falls below "
+            f"{OUTLIER_PEARSON_THRESHOLD:.2f}. " + ". ".join(outlier_notes) + ".")
+        out.append("")
+    out.append("Each round's raters are independent. R1 and R2 are reported "
+               "separately; per-rater pooling across rounds is omitted "
+               "because the two forms collect no per-rater identifier.")
     out.append("")
 
     # ------------------------------------------------------------------
@@ -384,15 +503,17 @@ def main():
     out.append(md_table(cmp_df, fmt=fmt))
     out.append("")
 
-    # Per-rater agreement with VLMs (combined)
-    out.append("**Per-rater Pearson r with VLMs (combined across rounds):**")
+    # Per-rater agreement with VLMs (per round, raters not paired)
+    out.append("**Per-rater Pearson r with VLMs (per round, raters not paired "
+               "across rounds):**")
     out.append("")
     rows = []
-    for rater, sub in ir.groupby("rater"):
+    for (round_name, rater), sub in ir.groupby(["round", "rater"]):
         per_image = sub.dropna(subset=["rating", "vlm_qwen", "vlm_gemma"])
         if len(per_image) < 5:
             continue
         rows.append({
+            "Round": round_name,
             "Rater": rater,
             "Images rated": len(per_image),
             "Pearson r vs Qwen3-VL":
@@ -407,49 +528,60 @@ def main():
     out.append("")
 
     # ------------------------------------------------------------------
-    # 4b. Overall agreement (5 humans + 2 VLMs treated as 7 raters)
+    # 4b. Overall agreement (per round: humans + 2 VLMs as one rater pool)
     # ------------------------------------------------------------------
-    out.append("## 4b. Overall agreement (5 humans + Qwen3-VL + Gemma-4)")
+    out.append("## 4b. Overall agreement (humans + Qwen3-VL + Gemma-4, "
+               "per round)")
     out.append("")
-    out.append("Treats all 7 annotators as raters of the same 300 images and "
-               "reports pooled inter-annotator reliability.")
+    out.append("Treats each round's human raters together with Qwen3-VL and "
+               "Gemma-4 as a single rater pool over that round's 150 images "
+               "(50 cases x 3 conditions). Rounds are reported separately "
+               "because human raters are not paired across rounds.")
     out.append("")
 
-    wide_h = (ir.pivot_table(index=["case_id", "condition"],
-                             columns="rater",
-                             values="rating",
-                             aggfunc="first"))
-    vlm_pairs = (ir.groupby(["case_id", "condition"])
-                 .agg(qwen3vl=("vlm_qwen", "first"),
-                      gemma4=("vlm_gemma", "first")))
-    wide5 = wide_h.join(vlm_pairs, how="inner").dropna()
-    if not wide5.empty:
-        cols = list(wide5.columns)
+    summary_rows = []
+    per_round_matrices = []
+    for round_name in ["Round 1", "Round 2"]:
+        sub = ir[ir["round"] == round_name]
+        if sub.empty:
+            continue
+        wide_h = sub.pivot_table(index=["case_id", "condition"],
+                                 columns="rater",
+                                 values="rating",
+                                 aggfunc="first")
+        vlm_pairs = (sub.groupby(["case_id", "condition"])
+                     .agg(qwen3vl=("vlm_qwen", "first"),
+                          gemma4=("vlm_gemma", "first")))
+        wide_all = wide_h.join(vlm_pairs, how="inner").dropna()
+        if wide_all.empty:
+            continue
+        cols = list(wide_all.columns)
+        n_humans = wide_h.shape[1]
         prs, srs, kps = [], [], []
         for a, b in combinations(cols, 2):
-            prs.append((a, b, pearsonr(wide5[a], wide5[b]).statistic))
-            srs.append((a, b, spearmanr(wide5[a], wide5[b]).statistic))
-            kps.append((a, b, quad_kappa(wide5[a].astype(int),
-                                          wide5[b].astype(int))))
-
-        # Pooled aggregate
-        mean_pearson = float(np.mean([x[2] for x in prs]))
-        mean_spearman = float(np.mean([x[2] for x in srs]))
-        mean_kappa = float(np.mean([x[2] for x in kps]))
-        M5 = wide5.to_numpy()
-        icc1 = icc2_single(M5)
-        k = M5.shape[1]
+            prs.append((a, b, pearsonr(wide_all[a], wide_all[b]).statistic))
+            srs.append((a, b, spearmanr(wide_all[a], wide_all[b]).statistic))
+            kps.append((a, b, quad_kappa(wide_all[a].astype(int),
+                                          wide_all[b].astype(int))))
+        M = wide_all.to_numpy()
+        icc1 = icc2_single(M)
+        k = M.shape[1]
         icc_k = k * icc1 / (1 + (k - 1) * icc1) if (1 + (k - 1) * icc1) else np.nan
+        summary_rows.append({
+            "Set": round_name,
+            "Annotators": f"{n_humans} humans + 2 VLMs",
+            "Images": int(wide_all.shape[0]),
+            "Mean pairwise Pearson r": float(np.mean([x[2] for x in prs])),
+            "Mean pairwise Spearman rho": float(np.mean([x[2] for x in srs])),
+            "Mean pairwise weighted kappa": float(np.mean([x[2] for x in kps])),
+            "ICC(2,1)": icc1,
+            "ICC(2,k)": icc_k,
+        })
+        per_round_matrices.append((round_name, cols, prs))
+
+    if summary_rows:
         out.append(md_table(
-            pd.DataFrame([{
-                "Annotators": "5 humans + 2 VLMs",
-                "Images": int(wide5.shape[0]),
-                "Mean pairwise Pearson r": mean_pearson,
-                "Mean pairwise Spearman rho": mean_spearman,
-                "Mean pairwise weighted kappa": mean_kappa,
-                "ICC(2,1)": icc1,
-                "ICC(2,k)": icc_k,
-            }]),
+            pd.DataFrame(summary_rows),
             fmt={"Mean pairwise Pearson r": "{:.3f}",
                  "Mean pairwise Spearman rho": "{:.3f}",
                  "Mean pairwise weighted kappa": "{:.3f}",
@@ -457,20 +589,101 @@ def main():
                  "ICC(2,k)": "{:.3f}"}))
         out.append("")
 
-        # Full pairwise matrix
-        out.append("**Full pairwise Pearson r matrix:**")
-        out.append("")
-        mat = pd.DataFrame(index=cols, columns=cols, dtype=float)
-        for a in cols:
-            mat.loc[a, a] = 1.0
-        for a, b, v in prs:
-            mat.loc[a, b] = v
-            mat.loc[b, a] = v
-        mat = mat.round(3).reset_index().rename(columns={"index": ""})
-        out.append(md_table(mat))
-        out.append("")
+        for round_name, cols, prs in per_round_matrices:
+            out.append(f"**Full pairwise Pearson r matrix -- {round_name}:**")
+            out.append("")
+            mat = pd.DataFrame(index=cols, columns=cols, dtype=float)
+            for a in cols:
+                mat.loc[a, a] = 1.0
+            for a, b, v in prs:
+                mat.loc[a, b] = v
+                mat.loc[b, a] = v
+            mat = mat.round(3).reset_index().rename(columns={"index": ""})
+            out.append(md_table(mat))
+            out.append("")
     else:
         out.append("Not enough overlapping data to compute pooled agreement.")
+        out.append("")
+
+    # ------------------------------------------------------------------
+    # 4c. Overall Pearson summary (averaged across rounds, with vs without
+    #     outliers)
+    # ------------------------------------------------------------------
+    out.append("## 4c. Overall Pearson summary (averaged across rounds)")
+    out.append("")
+    out.append("Single-row view of every Pearson-related metric, averaged "
+               "across Round 1 and Round 2. Inter-rater stats are the mean "
+               "of each round's within-round pairwise mean (raters are not "
+               "paired across rounds, so they cannot be pooled directly). "
+               "Human-vs-VLM Pearson is computed on per-image human means "
+               "and pooled across both rounds (300 images). The "
+               "\"excl. outliers\" row drops, in each round, any rater whose "
+               f"mean pairwise Pearson with the other raters is below "
+               f"{OUTLIER_PEARSON_THRESHOLD:.2f}.")
+    out.append("")
+
+    def _vlm_pearson(round_to_keep_raters):
+        """Compute pooled human-mean vs VLM Pearson across both rounds.
+
+        `round_to_keep_raters` maps round name -> list of rater IDs to
+        include when computing per-image human means.
+        """
+        frames = []
+        for round_name, raters in round_to_keep_raters.items():
+            sub = ir[(ir["round"] == round_name) & ir["rater"].isin(raters)]
+            per_image = (sub.groupby(["round", "case_id", "condition"])
+                         .agg(human_mean=("rating", "mean"),
+                              vlm_qwen=("vlm_qwen", "first"),
+                              vlm_gemma=("vlm_gemma", "first"))
+                         .reset_index()
+                         .dropna(subset=["human_mean",
+                                         "vlm_qwen", "vlm_gemma"]))
+            frames.append(per_image)
+        per_image_all = pd.concat(frames, ignore_index=True)
+        return {
+            "n_images": len(per_image_all),
+            "pearson_qwen": pearsonr(per_image_all.human_mean,
+                                     per_image_all.vlm_qwen).statistic,
+            "pearson_gemma": pearsonr(per_image_all.human_mean,
+                                      per_image_all.vlm_gemma).statistic,
+        }
+
+    def _row(label, stats_key):
+        if not all(stats_key in round_stats[r] for r in round_stats):
+            return None
+        per_round = [round_stats[r][stats_key] for r in ["Round 1", "Round 2"]
+                     if r in round_stats]
+        n_raters = ", ".join(str(s["n_raters"]) for s in per_round)
+        keep = {r: list(round_stats[r][stats_key]
+                        ["per_rater_mean_pearson"].keys())
+                for r in round_stats}
+        vlm = _vlm_pearson(keep)
+        return {
+            "Set": label,
+            "Raters (R1, R2)": n_raters,
+            "Inter-rater Pearson r": float(np.mean(
+                [s["mean_pearson"] for s in per_round])),
+            "Inter-rater kappa": float(np.mean(
+                [s["mean_kappa"] for s in per_round])),
+            "Inter-rater ICC(2,1)": float(np.mean(
+                [s["icc1"] for s in per_round])),
+            "Inter-rater ICC(2,k)": float(np.mean(
+                [s["icc_k"] for s in per_round])),
+            "Human vs Qwen3-VL (Pearson r, 300 imgs)": vlm["pearson_qwen"],
+            "Human vs Gemma-4 (Pearson r, 300 imgs)": vlm["pearson_gemma"],
+        }
+
+    summary_rows = [r for r in [_row("All raters", "all"),
+                                _row("Excl. outliers", "clean")] if r]
+    if summary_rows:
+        out.append(md_table(
+            pd.DataFrame(summary_rows),
+            fmt={"Inter-rater Pearson r": "{:.3f}",
+                 "Inter-rater kappa": "{:.3f}",
+                 "Inter-rater ICC(2,1)": "{:.3f}",
+                 "Inter-rater ICC(2,k)": "{:.3f}",
+                 "Human vs Qwen3-VL (Pearson r, 300 imgs)": "{:.3f}",
+                 "Human vs Gemma-4 (Pearson r, 300 imgs)": "{:.3f}"}))
         out.append("")
 
     # ------------------------------------------------------------------
@@ -478,11 +691,16 @@ def main():
     # ------------------------------------------------------------------
     out.append("## 5. Caveats")
     out.append("")
-    out.append("- Only 5 raters total, so per-bias-type breakdowns have "
-               "wide CIs and should be read as directional.")
+    out.append(f"- {n_r1} raters in Round 1 and {n_r2} in Round 2; per-bias-"
+               f"type breakdowns still have wide CIs and should be read as "
+               f"directional.")
+    out.append(f"- Round 1 had 13 form responses; 10 were randomly retained "
+               f"(seed {RATER_SAMPLE_SEED}, kept rows {r1_kept}) so both "
+               f"rounds contribute the same number of raters.")
     out.append("- Round 1 and Round 2 use disjoint case samples drawn from "
-               "the same lean-stereotype pool, with the same 5 raters scoring "
-               "both rounds (paired by submission order).")
+               "the same lean-stereotype pool. Raters are not paired across "
+               "rounds -- the form collects no per-rater identifier -- so "
+               "per-rater analyses are reported per round only.")
     out.append("- Only seed 1 was rated for each case.")
     out.append("- VLM scores are stored in each round's manifest "
                "(`vlm_qwen_score`, `vlm_gemma_score`) and were generated by "

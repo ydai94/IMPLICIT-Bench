@@ -113,11 +113,16 @@ python experiments/evaluate_alignment.py --exp_id 0     # neutral-prompt alignme
 
 ## Human Evaluation Pipeline
 
-Two rounds of 50 randomly sampled cases each were rated by 5 annotators via
-Google Forms; see [`data/human_eval/README.md`](data/human_eval/README.md).
-Round 2 (`data/human_eval_round2/`) excludes Round 1 cases via the sampler's
-`--exclude-csv` flag. The same 5 raters scored both rounds, giving 100 unique
-cases × 3 conditions × 5 raters = 1500 image ratings + 500 KG-validity ratings.
+Two rounds of 50 randomly sampled cases each were rated via Google Forms;
+see [`data/human_eval/README.md`](data/human_eval/README.md). Round 2
+(`data/human_eval_round2/`) excludes Round 1 cases via the sampler's
+`--exclude-csv` flag. Round 1 collected 13 form responses and Round 2
+collected 10; for analysis, `scripts/analyze_human_eval.py` randomly
+subsamples 10 of the 13 Round 1 responses (seed 42) so both rounds
+contribute the same number of raters, giving 10 raters × 50 cases × 3
+conditions = 1500 image ratings + 500 KG-validity ratings per round.
+Raters are not paired across rounds (the form collects no per-rater
+identifier), so per-rater pooling across rounds is omitted.
 
 Pipeline scripts:
 
