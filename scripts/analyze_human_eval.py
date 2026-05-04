@@ -49,9 +49,19 @@ TARGET_RATERS = 10
 # Raters whose mean pairwise Pearson r with the other raters in their round
 # is below this threshold are flagged as outliers and re-reported in a
 # "drop outliers" row alongside the headline numbers. 0.40 cleanly
-# separates two raters (r1_rater_8 ≈ 0.27, r2_rater_9 ≈ 0.30) from the
-# rest of the pool, all of whom sit above 0.50.
+# separates one rater (mean pairwise r ≈ 0.27 in Round 1 and ≈ 0.30 in
+# Round 2) from the rest of the pool, all of whom sit above 0.50.
 OUTLIER_PEARSON_THRESHOLD = 0.40
+
+# Externally confirmed: certain raters across rounds are the same person.
+# This is information the form does NOT capture (it only records a
+# Timestamp), but the experimenter has confirmed identity for these IDs
+# from off-form knowledge (e.g. team roster). Used only to phrase the
+# outlier callout correctly -- it does not unlock cross-round pooling for
+# any other rater.
+KNOWN_SAME_RATER = {
+    frozenset({"r1_rater_8", "r2_rater_9"}),
+}
 
 
 def parse_rating(s) -> float:
@@ -441,11 +451,29 @@ def main():
              "ICC(2,1)": "{:.3f}",
              "ICC(2,k)": "{:.3f}"}))
     out.append("")
-    if outlier_notes:
+    flat_outliers = {oid for ids in round_outliers.values() for oid in ids}
+    grouped_outlier_ids = []
+    for group in KNOWN_SAME_RATER:
+        if group <= flat_outliers:
+            grouped_outlier_ids.append(sorted(group))
+            flat_outliers -= group
+    for oid in sorted(flat_outliers):
+        grouped_outlier_ids.append([oid])
+    n_unique_outliers = len(grouped_outlier_ids)
+    if grouped_outlier_ids:
+        rater_word = "rater" if n_unique_outliers == 1 else "raters"
+        parts = []
+        for ids in grouped_outlier_ids:
+            if len(ids) == 1:
+                parts.append(f"`{ids[0]}`")
+            else:
+                parts.append(" / ".join(f"`{i}`" for i in ids)
+                             + " (same person across rounds)")
         out.append(
-            f"Outliers are raters whose mean pairwise Pearson r with the "
-            f"other raters in their round falls below "
-            f"{OUTLIER_PEARSON_THRESHOLD:.2f}. " + ". ".join(outlier_notes) + ".")
+            f"After flagging at threshold "
+            f"{OUTLIER_PEARSON_THRESHOLD:.2f} (mean pairwise Pearson r with "
+            f"the other raters in the same round), {n_unique_outliers} "
+            f"{rater_word} dropped: " + ", ".join(parts) + ".")
         out.append("")
     out.append("Each round's raters are independent. R1 and R2 are reported "
                "separately; per-rater pooling across rounds is omitted "
@@ -611,15 +639,19 @@ def main():
     # ------------------------------------------------------------------
     out.append("## 4c. Overall Pearson summary (averaged across rounds)")
     out.append("")
+    n_dropped_unique = len(grouped_outlier_ids)
+    rater_noun = "rater" if n_dropped_unique == 1 else "raters"
     out.append("Single-row view of every Pearson-related metric, averaged "
                "across Round 1 and Round 2. Inter-rater stats are the mean "
                "of each round's within-round pairwise mean (raters are not "
                "paired across rounds, so they cannot be pooled directly). "
                "Human-vs-VLM Pearson is computed on per-image human means "
                "and pooled across both rounds (300 images). The "
-               "\"excl. outliers\" row drops, in each round, any rater whose "
-               f"mean pairwise Pearson with the other raters is below "
-               f"{OUTLIER_PEARSON_THRESHOLD:.2f}.")
+               f"\"excl. outliers\" row drops {n_dropped_unique} unique "
+               f"{rater_noun} flagged in Section 3 -- the same person "
+               f"submitted as `r1_rater_8` in Round 1 and `r2_rater_9` in "
+               f"Round 2 (confirmed off-form), so dropping them removes one "
+               f"row from each round.")
     out.append("")
 
     def _vlm_pearson(round_to_keep_raters):
@@ -698,9 +730,13 @@ def main():
                f"(seed {RATER_SAMPLE_SEED}, kept rows {r1_kept}) so both "
                f"rounds contribute the same number of raters.")
     out.append("- Round 1 and Round 2 use disjoint case samples drawn from "
-               "the same lean-stereotype pool. Raters are not paired across "
-               "rounds -- the form collects no per-rater identifier -- so "
-               "per-rater analyses are reported per round only.")
+               "the same lean-stereotype pool. The form collects no "
+               "per-rater identifier, so cross-round identity is generally "
+               "unknown and per-rater analyses are reported per round. "
+               "One exception: the rater submitting as `r1_rater_8` and "
+               "`r2_rater_9` has been confirmed off-form to be the same "
+               "person; this rater is the sole outlier flagged in "
+               "Section 3 / 4c.")
     out.append("- Only seed 1 was rated for each case.")
     out.append("- VLM scores are stored in each round's manifest "
                "(`vlm_qwen_score`, `vlm_gemma_score`) and were generated by "
