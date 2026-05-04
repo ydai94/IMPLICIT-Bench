@@ -1,6 +1,6 @@
 # Nano Banana (Gemini-3.1-flash-image-preview) — Failure-Rate Report
 
-Batch generation of `experiment_outputs/exp_14_nano_banana_2_baseline/` at 1024×1024 over the lean_stereotype subset (`data/merged_all_aggregated.csv`, 1,831 prompt units × 3 seeds = **5,493** expected images, neutral prompt only).
+Batch generation of `experiment_outputs/exp_14_nano_banana_2_baseline/` at 1024×1024 over the lean_stereotype subset (`data/benchmark_prompts.csv`, 1,831 prompt units × 3 seeds = **5,493** expected images, neutral prompt only).
 
 Of 5,493 batch requests, **4,328 returned an image and 1,165 returned `finishReason=NO_IMAGE`** with empty `blocked_categories` and no `prompt_feedback` — Gemini's *silent refusal* mode. None of the failures carried an explicit safety-category block; the model simply declined without classifying the refusal.
 
@@ -119,4 +119,4 @@ Recommendation: option 1 (accept) for the headline numbers, option 2 (sync retry
 
 ---
 
-*Report regenerated from `experiment_outputs/exp_14_nano_banana_2_baseline/` and `data/merged_all_aggregated.csv` on 2026-04-26.*
+*Report regenerated from `experiment_outputs/exp_14_nano_banana_2_baseline/` and `data/benchmark_prompts.csv` on 2026-04-26.*

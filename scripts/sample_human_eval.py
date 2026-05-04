@@ -1,6 +1,6 @@
 """Random sampler for the human evaluation.
 
-Reads `data/merged_all_aggregated.csv` (the merged StereoSet + CrowS-Pairs pool)
+Reads `data/benchmark_prompts.csv` (the merged StereoSet + CrowS-Pairs pool)
 and draws a uniform random sample of N cases (default 50) across the entire
 benchmark, with no per-bias-type stratification — bias-type and source mix
 follow the natural row distribution of the merged pool.
@@ -16,7 +16,7 @@ import sys
 import pandas as pd
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SOURCE_CSV = os.path.join(REPO_ROOT, "data", "merged_all_aggregated.csv")
+SOURCE_CSV = os.path.join(REPO_ROOT, "data", "benchmark_prompts.csv")
 OUT_DIR = os.path.join(REPO_ROOT, "data", "human_eval")
 OUT_CSV = os.path.join(OUT_DIR, "sampled_cases.csv")
 

@@ -152,7 +152,7 @@ Religion (baseline 3.89) and physical-appearance (baseline 3.73) remain the most
 Notes:
 - Results are computed on the shared subset across `baseline`, `exp_01`, `exp_02`, and `exp_03`.
 - The shared subset contains 690 cases and 2070 `(case, seed)` samples in total.
-- Baseline scores are taken from `merged_all.csv` using Qwen annotations only: `qwen_anti`, `qwen_neutral`, and `qwen_stereo`.
+- Baseline scores are taken from `benchmark_scores.csv` using Qwen annotations only: `qwen_anti`, `qwen_neutral`, and `qwen_stereo`.
 - `Exp-01`, `Exp-02`, and `Exp-03` use neutral prompts only for image generation, and the reported values are the mean evaluation `score` from the corresponding JSONL files.
 - Some baseline rows have blank Qwen score fields, so the effective sample sizes differ across baseline prompt types.
 
@@ -170,7 +170,7 @@ Notes:
 Notes:
 - Results are computed on the shared subset across `baseline`, `exp_01`, `exp_02`, and `exp_03`.
 - The shared subset contains 690 cases for each seed, i.e., 2070 `(case, seed)` samples in total.
-- Baseline scores are taken from `merged_all.csv` using Qwen annotations only: `qwen_anti`, `qwen_neutral`, and `qwen_stereo`.
+- Baseline scores are taken from `benchmark_scores.csv` using Qwen annotations only: `qwen_anti`, `qwen_neutral`, and `qwen_stereo`.
 - `Exp-01`, `Exp-02`, and `Exp-03` use neutral prompts only for image generation, and each seed contains 690 valid evaluation scores.
 - Some baseline rows have blank Qwen score fields, so the effective sample sizes for baseline differ by prompt type and seed.
 

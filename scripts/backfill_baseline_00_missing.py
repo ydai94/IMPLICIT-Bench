@@ -1,5 +1,5 @@
 """
-Backfill baseline_00 Qwen scores in data/merged_all.csv for the 441 cases listed
+Backfill baseline_00 Qwen scores in data/benchmark_scores.csv for the 441 cases listed
 in experiment_outputs/exp_00_baseline_missing/manifest.csv.
 
 Pipeline (no GPU required; OpenRouter API only):
@@ -15,7 +15,7 @@ Pipeline (no GPU required; OpenRouter API only):
                      types per case don't collide (vs evaluate_all.py's default
                      which keys only on (case_id, alpha, seed)).
 
-  3. backfill:       Patch data/merged_all.csv in place (with .bak):
+  3. backfill:       Patch data/benchmark_scores.csv in place (with .bak):
                        - qwen_neutral   <- cache/eval_results/exp_00_eval.csv
                                           (all 441 manifest cases)
                        - qwen_stereo    <- stereo_anti_eval.csv (438 CP cases)
@@ -55,9 +55,9 @@ STEREO_ANTI_MANIFEST = MANIFEST_DIR / "stereo_anti_manifest.csv"
 STEREO_ANTI_JSONL = MANIFEST_DIR / "stereo_anti_eval.jsonl"
 STEREO_ANTI_CSV = MANIFEST_DIR / "stereo_anti_eval.csv"
 
-DATA_CSV = REPO_ROOT / "data" / "merged_all_aggregated.csv"
-MERGED_ALL = REPO_ROOT / "data" / "merged_all.csv"
-MERGED_ALL_BAK = REPO_ROOT / "data" / "merged_all.csv.bak"
+BENCHMARK_PROMPTS = REPO_ROOT / "data" / "benchmark_prompts.csv"
+BENCHMARK_SCORES = REPO_ROOT / "data" / "benchmark_scores.csv"
+BENCHMARK_SCORES_BAK = REPO_ROOT / "data" / "benchmark_scores.csv.bak"
 EXP00_EVAL_CSV = REPO_ROOT / "cache" / "eval_results" / "exp_00_eval.csv"
 
 IMAGE_TYPES = ["stereotype_trigger", "anti_stereotype_trigger"]
@@ -71,7 +71,7 @@ def build_manifest():
     cp = src[src["source"] == "CrowS-Pairs"].copy()
     print(f"Source manifest: {len(src)} rows, CP subset: {len(cp)}")
 
-    case_meta = pd.read_csv(DATA_CSV)
+    case_meta = pd.read_csv(BENCHMARK_PROMPTS)
     case_meta["id"] = case_meta["id"].astype(str)
     prompt_lookup = case_meta.set_index("id")[
         ["prompt_stereotype", "prompt_anti_stereotype"]
@@ -160,7 +160,7 @@ def score(workers=16):
     print(f"Loaded {len(manifest)} rows to score")
 
     case_lookup = (
-        pd.read_csv(DATA_CSV).astype({"id": str}).set_index("id").to_dict("index")
+        pd.read_csv(BENCHMARK_PROMPTS).astype({"id": str}).set_index("id").to_dict("index")
     )
 
     processed = set()
@@ -215,10 +215,10 @@ def _convert_jsonl_to_csv():
         print(f"Wrote {len(rows)} rows -> {STEREO_ANTI_CSV}")
 
 
-# ---------- Step 3: backfill merged_all.csv ----------
+# ---------- Step 3: backfill benchmark_scores.csv ----------
 
 def backfill():
-    """Patch merged_all.csv in place. Idempotent: only fills NaN cells."""
+    """Patch benchmark_scores.csv in place. Idempotent: only fills NaN cells."""
     if not EXP00_EVAL_CSV.exists():
         sys.exit(f"Missing {EXP00_EVAL_CSV}")
     if not STEREO_ANTI_CSV.exists():
@@ -250,12 +250,12 @@ def backfill():
     print(f"  stereo:      {len(stereo_lookup)}")
     print(f"  anti:        {len(anti_lookup)}")
 
-    if not MERGED_ALL_BAK.exists():
+    if not BENCHMARK_SCORES_BAK.exists():
         import shutil
-        shutil.copy2(MERGED_ALL, MERGED_ALL_BAK)
-        print(f"Backed up -> {MERGED_ALL_BAK}")
+        shutil.copy2(BENCHMARK_SCORES, BENCHMARK_SCORES_BAK)
+        print(f"Backed up -> {BENCHMARK_SCORES_BAK}")
 
-    df = pd.read_csv(MERGED_ALL)
+    df = pd.read_csv(BENCHMARK_SCORES)
     df["id"] = df["id"].astype(str)
     df["seed"] = df["seed"].astype(int)
 
@@ -277,7 +277,7 @@ def backfill():
     n_ster = _fill("qwen_stereo", stereo_lookup)
     n_anti = _fill("qwen_anti", anti_lookup)
 
-    df.to_csv(MERGED_ALL, index=False)
+    df.to_csv(BENCHMARK_SCORES, index=False)
 
     after = {c: int(df[c].isna().sum()) for c in
              ["qwen_neutral", "qwen_stereo", "qwen_anti"]}
@@ -286,7 +286,7 @@ def backfill():
     for c in ["qwen_neutral", "qwen_stereo", "qwen_anti"]:
         print(f"  {c}: {before[c]} -> {after[c]}")
     print(f"\nFilled: qwen_neutral={n_neut}, qwen_stereo={n_ster}, qwen_anti={n_anti}")
-    print(f"Wrote {MERGED_ALL}")
+    print(f"Wrote {BENCHMARK_SCORES}")
 
 
 # ---------- main ----------

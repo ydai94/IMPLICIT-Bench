@@ -24,7 +24,7 @@ from utils import call_llm
 
 # ── Config ────────────────────────────────────────────────────────────────────
 _BASE = "/data/gpfs/projects/punim2888/stereoimage"
-INPUT_CSV = f"{_BASE}/data/merged_all_aggregated.csv"
+INPUT_CSV = f"{_BASE}/data/benchmark_prompts.csv"
 CHECKPOINT_FILE = f"{_BASE}/checkpoints/matching_checkpoint_dedup.jsonl"
 OUTPUT_CSV = f"{_BASE}/data/labeled_matching.csv"
 

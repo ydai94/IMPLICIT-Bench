@@ -5,7 +5,7 @@ For each image, makes ONE VLM call (OpenRouter / Qwen3-VL) and asks the model
 to return a binary aligned=true/false verdict with a short justification.
 
 The comparison is always against the *neutral* prompt from
-`data/merged_all_aggregated.csv`, even for experiments that rewrite the prompt
+`data/benchmark_prompts.csv`, even for experiments that rewrite the prompt
 (exp 1-3). This tests whether debiased images still depict the original concept.
 
 Usage:

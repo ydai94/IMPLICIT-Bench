@@ -8,7 +8,7 @@ to the existing Qwen3-VL and Gemma-4 scores.
 
 | Path | Produced by | Purpose |
 |---|---|---|
-| `sampled_cases.csv` | `scripts/sample_human_eval.py` | 50 stratified cases drawn from `data/merged_all_aggregated.csv` |
+| `sampled_cases.csv` | `scripts/sample_human_eval.py` | 50 stratified cases drawn from `data/benchmark_prompts.csv` |
 | `manifest.csv` | `scripts/build_forms_package.py` | One row per Forms question (200 total: 50 KG + 150 image), with VLM scores joined in |
 | `images/{case_id}_{condition}_seed{n}.png` | `scripts/build_forms_package.py` | 150 image files; the filename is the human-eval label that ties back to VLM scores |
 | `forms/all_questions.docx` | `scripts/build_forms_package.py` | Single Word doc with 200 questions for Microsoft Forms' "Quick Import" |

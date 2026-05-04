@@ -613,7 +613,7 @@ def main():
 
     ss_merged.to_csv(os.path.join(args.output_dir, "data", "merged_stereoset.csv"), index=False)
     cp_merged.to_csv(os.path.join(args.output_dir, "data", "merged_crowspairs.csv"), index=False)
-    combined.to_csv(os.path.join(args.output_dir, "data", "merged_all.csv"), index=False)
+    combined.to_csv(os.path.join(args.output_dir, "data", "benchmark_scores.csv"), index=False)
 
     if args.skip_plots:
         print("Skipping analysis (--skip-plots)")

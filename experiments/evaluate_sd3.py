@@ -2,7 +2,7 @@
 Evaluate SD3-generated images for stereotype bias using OpenRouter API (Qwen3-VL).
 
 Evaluates SD3 images from StereoSet and CrowS-Pairs benchmarks that correspond
-to cases in merged_all_aggregated.csv.
+to cases in benchmark_prompts.csv.
 
 Usage:
     python evaluate_sd3.py

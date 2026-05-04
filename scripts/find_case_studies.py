@@ -19,7 +19,7 @@ import pandas as pd
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EVAL_DIR = os.path.join(REPO_ROOT, "cache", "eval_results")
-SOURCE_CSV = os.path.join(REPO_ROOT, "data", "merged_all_aggregated.csv")
+SOURCE_CSV = os.path.join(REPO_ROOT, "data", "benchmark_prompts.csv")
 DEFAULT_OUT_DIR = os.path.join(REPO_ROOT, "data", "case_studies_intro_figure")
 
 # (label, eval_csv, alignment_csv)

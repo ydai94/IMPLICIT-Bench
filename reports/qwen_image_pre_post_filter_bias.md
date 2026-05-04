@@ -1,6 +1,6 @@
 # Qwen-Image Bias Scores: Pre-filter vs Post-filter
 
-Mean bias scores on Qwen-Image generated images, comparing the full benchmark (**pre-filter**) against the `lean_stereotype` subset (**post-filter**, `data/merged_all.csv`). Three evaluators: Qwen3-VL, Gemma-4, CLIP.
+Mean bias scores on Qwen-Image generated images, comparing the full benchmark (**pre-filter**) against the `lean_stereotype` subset (**post-filter**, `data/benchmark_scores.csv`). Three evaluators: Qwen3-VL, Gemma-4, CLIP.
 
 - **Score scale (Qwen3-VL / Gemma-4):** 0--5 per image (0 = no stereotype reflected, 5 = extremely stereotypical).
 - **CLIP:** mean cosine similarity between rendered image pairs.
@@ -12,7 +12,7 @@ Sources:
 - Pre-filter Qwen3-VL: `stereoset/image_bias_eval_qwen3vl_results_all.csv`, `crows-pairs/image_bias_eval_qwen3vl_results_part{1..5}.csv` (`part5` added 2026-04-28: OpenRouter Qwen3-VL scores for the 438 CrowS-Pairs seed-0 cases that the local-Qwen run skipped, same model `qwen/qwen3-vl-30b-a3b-instruct`)
 - Pre-filter Gemma-4:  `stereoset/image_bias_eval_gemma4_results_all.csv`,  `crows-pairs/image_bias_eval_gemma4_results_part*.csv`
 - Pre-filter CLIP: `stereoset/clip_analysis/clip_similarities.csv` (StereoSet) and `crows-pairs/clip_similarities.csv` (CrowS-Pairs, computed in this run via `stereoimage/scripts/run_clip_crowspairs_raw.py` on 2 GPUs)
-- Post-filter (lean_stereotype): `stereoimage/data/merged_all.csv`
+- Post-filter (lean_stereotype): `stereoimage/data/benchmark_scores.csv`
 
 ---
 

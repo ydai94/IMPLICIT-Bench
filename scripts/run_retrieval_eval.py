@@ -18,7 +18,7 @@ import torch
 from sentence_transformers import SentenceTransformer
 
 BASE_DIR = "/data/gpfs/projects/punim2888"
-MERGED_CSV = os.path.join(BASE_DIR, "stereoimage", "merged_all.csv")
+MERGED_CSV = os.path.join(BASE_DIR, "stereoimage", "data", "benchmark_scores.csv")
 MODEL_NAME = "Qwen/Qwen3-Embedding-8B"
 MODEL_CACHE = os.path.join(BASE_DIR, "models")
 OUTPUT_DIR = os.path.join(BASE_DIR, "stereoimage")

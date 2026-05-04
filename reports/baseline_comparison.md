@@ -6,7 +6,7 @@ Three text-to-image models evaluated on the same 1,831-prompt benchmark (3 seeds
 
 | Item | Value |
 |---|---|
-| Prompt set | `data/merged_all_aggregated.csv` — 1,831 prompt units (1,393 StereoSet + 438 CrowS-Pairs) |
+| Prompt set | `data/benchmark_prompts.csv` — 1,831 prompt units (1,393 StereoSet + 438 CrowS-Pairs) |
 | Seeds | 3 per prompt → 5,493 expected images |
 | Evaluator (bias) | Qwen3-VL-30B-A3B-Instruct via OpenRouter, deterministic decoding |
 | Evaluator (alignment) | Qwen3-VL-30B-A3B-Instruct — local bf16 for SD3 / GPT-Image-2; OpenRouter for Qwen-Image exp 0 |

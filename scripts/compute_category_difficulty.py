@@ -12,7 +12,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 _BASE = "/data/gpfs/projects/punim2888/stereoimage"
-MERGED_CSV = f"{_BASE}/data/merged_all.csv"
+MERGED_CSV = f"{_BASE}/data/benchmark_scores.csv"
 AGREEMENT_CSV = f"{_BASE}/reports/agreement_by_bias_type.csv"
 OUT_CSV = f"{_BASE}/reports/category_difficulty.csv"
 OUT_PLOT = f"{_BASE}/plots/category_difficulty_ranking.png"
@@ -84,7 +84,7 @@ TIER_COLOR = {"Strong": "#2e7d32", "Medium": "#f9a825", "Weak": "#c62828"}
 def main(n_boot: int):
     df = pd.read_csv(MERGED_CSV)
     needed = [f"{ev}_{arm}" for ev in EVALUATORS for arm in ARMS]
-    print(f"Loaded {len(df)} rows from merged_all.csv")
+    print(f"Loaded {len(df)} rows from benchmark_scores.csv")
     for c in needed:
         print(f"  {c}: nonnull={df[c].notna().sum()}")
 

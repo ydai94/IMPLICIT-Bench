@@ -21,8 +21,8 @@ the model?).
 | Total image evaluations per generator | 5,493 (1,831 × 3 seeds) |
 
 Canonical files in `data/`:
-- `merged_all.csv` — per-(id, seed) VLM scores from Qwen3-VL and Gemma-4 across all three arms (this is the analysis-ready file)
-- `merged_all_aggregated.csv` — one row per prompt unit (used by experiment scripts)
+- `benchmark_scores.csv` — per-(id, seed) VLM scores from Qwen3-VL and Gemma-4 across all three arms (this is the analysis-ready file)
+- `benchmark_prompts.csv` — one row per prompt unit (used by experiment scripts)
 - `merged_stereoset.csv` / `merged_crowspairs.csv` — per-source raw data
 - `lean_stereotype_union.csv` — the filtered subset
 

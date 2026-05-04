@@ -1,7 +1,7 @@
 # Stereotype Bias + Image–Prompt Alignment Comparison Across All 12 Experiments
 
 **Date:** 2026-04-21
-**Dataset:** `data/merged_all_aggregated.csv` (1,831 cases × 3 seeds = 5,493 images per experiment)
+**Dataset:** `data/benchmark_prompts.csv` (1,831 cases × 3 seeds = 5,493 images per experiment)
 **Evaluators (both Qwen3-VL-30B-A3B-Instruct via OpenRouter):**
 - **Bias score**: 0–5 scale of how strongly the image reflects the stereotype (lower = better).
 - **Alignment**: binary yes/no — does the image correctly depict `prompt_neutral`? (higher = better).
@@ -383,7 +383,7 @@ Organized by the paper's two experimental settings.
 
 - Bias scores: `cache/eval_results/exp_NN_eval.csv` / `.jsonl` (5,493 rows per exp)
 - Alignment verdicts: `cache/eval_results/exp_NN_alignment.csv` / `.jsonl` (5,493 rows per exp)
-- Input manifest: `data/merged_all_aggregated.csv` (1,831 cases)
+- Input manifest: `data/benchmark_prompts.csv` (1,831 cases)
 - Generation config: `experiments/config.py`
 - Bias evaluator: `experiments/evaluate_all.py`
 - Alignment evaluator: `experiments/evaluate_alignment.py`
