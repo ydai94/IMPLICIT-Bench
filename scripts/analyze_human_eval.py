@@ -8,14 +8,16 @@ Reads:
 Writes:
   reports/human_eval_summary.md
 
-Round 1 has 13 form responses but Round 2 has 10. To produce a symmetric
-10-vs-10 analysis we randomly subsample 10 of the 13 R1 responses with a
-fixed seed, then pair the selected R1 raters to R2 raters by submission
-order. The pairing is nominal -- the form collects no per-rater identifier.
+Both rounds collected 13 form responses; one rater (the same person in
+both rounds, confirmed off-form) had a mean pairwise Pearson r ~0.27 in
+R1 and ~0.30 in R2 -- well below the 0.40 acceptable-agreement
+threshold -- and is dropped at load time, leaving 12 raters per round.
+Raters are namespaced per round (r1_rater_*, r2_rater_*) by submission
+order; the form collects only a Timestamp, so cross-round identity is
+generally unknown.
 """
 
 import os
-import random
 import re
 from itertools import combinations
 from typing import Optional
@@ -40,28 +42,11 @@ ROUNDS = [
 ]
 OUT_MD = f"{ROOT}/reports/human_eval_summary.md"
 
-# Random seed for selecting which R1 form rows to keep so both rounds have
-# the same number of raters. Change only if you intend the report numbers
-# to shift.
-RATER_SAMPLE_SEED = 42
-TARGET_RATERS = 10
-
-# Raters whose mean pairwise Pearson r with the other raters in their round
-# is below this threshold are flagged as outliers and re-reported in a
-# "drop outliers" row alongside the headline numbers. 0.40 cleanly
-# separates one rater (mean pairwise r ≈ 0.27 in Round 1 and ≈ 0.30 in
-# Round 2) from the rest of the pool, all of whom sit above 0.50.
-OUTLIER_PEARSON_THRESHOLD = 0.40
-
-# Externally confirmed: certain raters across rounds are the same person.
-# This is information the form does NOT capture (it only records a
-# Timestamp), but the experimenter has confirmed identity for these IDs
-# from off-form knowledge (e.g. team roster). Used only to phrase the
-# outlier callout correctly -- it does not unlock cross-round pooling for
-# any other rater.
-KNOWN_SAME_RATER = {
-    frozenset({"r1_rater_8", "r2_rater_9"}),
-}
+# Raters dropped from the analysis. r1_rater_11 and r2_rater_9 are the
+# same person (confirmed off-form) whose mean pairwise Pearson r with the
+# rest of each round is ~0.27 (R1) / 0.30 (R2), below the 0.40
+# acceptable-agreement threshold. Every other rater sits above 0.50.
+DROPPED_RATERS = {"r1_rater_11", "r2_rater_9"}
 
 
 def parse_rating(s) -> float:
@@ -84,32 +69,17 @@ def parse_yn(s) -> Optional[str]:
     return None
 
 
-def select_rater_rows(responses_path: str, target: int,
-                      seed: int) -> list[int]:
-    """Return submission-ordered row indices to keep from a responses CSV.
-
-    Drops the header (row 0). If there are at most `target` data rows, all
-    are kept; otherwise `target` are randomly sampled (seeded) and returned
-    sorted ascending so submission order is preserved.
-    """
-    resp = pd.read_csv(responses_path, header=None, dtype=str)
-    data_rows = list(range(1, len(resp)))
-    if len(data_rows) <= target:
-        return data_rows
-    rng = random.Random(seed)
-    return sorted(rng.sample(data_rows, target))
-
-
-def long_form(round_name, manifest_path, responses_path,
-              keep_rows: list[int]) -> pd.DataFrame:
+def long_form(round_name, manifest_path,
+              responses_path) -> pd.DataFrame:
     """Reshape one round's wide form responses to long-form rows.
 
-    `keep_rows` is a submission-ordered list of CSV row indices to retain.
-    Raters are namespaced by round (`r1_rater_*` / `r2_rater_*`) because the
-    form collects no per-rater identifier, so cross-round identity cannot
-    be assumed.
+    All data rows of the responses CSV are kept (header is row 0). Raters
+    are namespaced by round (`r1_rater_*` / `r2_rater_*`) because the form
+    collects no per-rater identifier, so cross-round identity cannot be
+    assumed.
     """
     resp = pd.read_csv(responses_path, header=None, dtype=str)
+    keep_rows = list(range(1, len(resp)))
     manifest = (pd.read_csv(manifest_path)
                 .sort_values(["section_id", "sub_q"])
                 .reset_index(drop=True))
@@ -198,14 +168,9 @@ def md_table(df: pd.DataFrame, fmt=None) -> str:
 
 
 def main():
-    selections = {
-        r["name"]: select_rater_rows(r["responses"], TARGET_RATERS,
-                                     RATER_SAMPLE_SEED)
-        for r in ROUNDS
-    }
-    long = pd.concat([long_form(r["name"], r["manifest"], r["responses"],
-                                selections[r["name"]])
+    long = pd.concat([long_form(r["name"], r["manifest"], r["responses"])
                       for r in ROUNDS], ignore_index=True)
+    long = long[~long["rater"].isin(DROPPED_RATERS)].reset_index(drop=True)
     long["rating"] = pd.to_numeric(long["rating"], errors="coerce")
     long["vlm_qwen"] = pd.to_numeric(long["vlm_qwen"], errors="coerce")
     long["vlm_gemma"] = pd.to_numeric(long["vlm_gemma"], errors="coerce")
@@ -218,36 +183,6 @@ def main():
     n_cases_total = long["case_id"].nunique()
     n_kg_ratings = int((long["kind"] == "kg_validity").sum())
     n_img_ratings = int((long["kind"] == "image_rating").sum())
-
-    # Precompute outlier raters per round using the same Pearson-threshold
-    # rule as Section 3. We need this up-front so Sections 1 (KG validity)
-    # and 2 (image-rating means) can also report excl-outlier rows, not
-    # just Section 3.
-    outlier_raters: set[str] = set()
-    _ir_pre = long[long["kind"] == "image_rating"]
-    for _r in ["Round 1", "Round 2"]:
-        _sub = _ir_pre[_ir_pre["round"] == _r]
-        _wide = (_sub.pivot_table(index=["case_id", "condition"],
-                                  columns="rater",
-                                  values="rating",
-                                  aggfunc="first")
-                 .dropna())
-        if _wide.shape[1] < 2 or _wide.empty:
-            continue
-        _cols = list(_wide.columns)
-        _per = {c: [] for c in _cols}
-        for _a, _b in combinations(_cols, 2):
-            _r_ab = pearsonr(_wide[_a], _wide[_b]).statistic
-            _per[_a].append(_r_ab)
-            _per[_b].append(_r_ab)
-        for _c, _vals in _per.items():
-            if np.mean(_vals) < OUTLIER_PEARSON_THRESHOLD:
-                outlier_raters.add(_c)
-
-    # Document which raw form rows were retained (1-indexed within each
-    # responses CSV; row 0 is the header).
-    r1_kept = selections["Round 1"]
-    r2_kept = selections["Round 2"]
 
     out = []
     out.append("# Human Evaluation Summary (Round 1 + Round 2)")
@@ -263,10 +198,6 @@ def main():
         f"{n_img_ratings} image ratings. Raters are anonymous form "
         f"respondents and are not paired across rounds (the form collects "
         f"only a Timestamp), so per-rater pooling across rounds is omitted.")
-    out.append(
-        f"- **Round 1 subsample**: 10 of 13 form responses kept "
-        f"(rows {r1_kept}, 1-indexed; seed {RATER_SAMPLE_SEED}). "
-        f"Round 2 kept all {len(r2_kept)} responses.")
     out.append("")
     out.append(
         "Each case asks one KG-validity question (Yes / No / Unsure) and three "
@@ -297,16 +228,6 @@ def main():
             "% Unsure": (sub["yn"] == "Unsure").mean() * 100,
             "% No": (sub["yn"] == "No").mean() * 100,
         })
-        if outlier_raters:
-            sub_clean = sub[~sub["rater"].isin(outlier_raters)]
-            if len(sub_clean):
-                rows.append({
-                    "Set": f"{r} (excl. outliers)",
-                    "n ratings": len(sub_clean),
-                    "% Yes": (sub_clean["yn"] == "Yes").mean() * 100,
-                    "% Unsure": (sub_clean["yn"] == "Unsure").mean() * 100,
-                    "% No": (sub_clean["yn"] == "No").mean() * 100,
-                })
     out.append(md_table(
         pd.DataFrame(rows),
         fmt={"% Yes": "{:.1f}", "% Unsure": "{:.1f}", "% No": "{:.1f}"}))
@@ -354,19 +275,12 @@ def main():
     ir = long[long["kind"] == "image_rating"].copy()
 
     rows = []
-    set_order = []
     for r in ["Round 1", "Round 2", "Combined"]:
-        set_order.append((r, False))
-        if outlier_raters:
-            set_order.append((r, True))
-    for r, excl in set_order:
         for cond in ["stereotype_trigger", "neutral", "anti_stereotype_trigger"]:
             sub = ir if r == "Combined" else ir[ir["round"] == r]
-            if excl:
-                sub = sub[~sub["rater"].isin(outlier_raters)]
             sub = sub[sub["condition"] == cond]
             rows.append({
-                "Set": f"{r} (excl. outliers)" if excl else r,
+                "Set": r,
                 "Condition": cond,
                 "Mean": sub["rating"].mean(),
                 "Std": sub["rating"].std(),
@@ -438,9 +352,7 @@ def main():
         }
 
     rel_rows = []
-    outlier_notes = []
     round_stats: dict[str, dict] = {}
-    round_outliers: dict[str, list[str]] = {}
     for r in ["Round 1", "Round 2"]:
         sub = ir[ir["round"] == r]
         wide = (sub.pivot_table(index=["case_id", "condition"],
@@ -451,7 +363,7 @@ def main():
         if wide.shape[1] < 2 or wide.empty:
             continue
         s = _stats_for(wide)
-        round_stats[r] = {"all": s}
+        round_stats[r] = s
         rel_rows.append({
             "Set": r,
             "Raters": s["n_raters"],
@@ -462,30 +374,6 @@ def main():
             "ICC(2,k)": s["icc_k"],
         })
 
-        outliers = [c for c, v in s["per_rater_mean_pearson"].items()
-                    if v < OUTLIER_PEARSON_THRESHOLD]
-        round_outliers[r] = outliers
-        if outliers:
-            kept = [c for c in wide.columns if c not in outliers]
-            wide_clean = wide[kept]
-            sc = _stats_for(wide_clean)
-            round_stats[r]["clean"] = sc
-            rel_rows.append({
-                "Set": f"{r} (excl. outliers)",
-                "Raters": sc["n_raters"],
-                "Images": sc["n_images"],
-                "Pairwise Pearson r (mean)": sc["mean_pearson"],
-                "Pairwise weighted kappa (mean)": sc["mean_kappa"],
-                "ICC(2,1)": sc["icc1"],
-                "ICC(2,k)": sc["icc_k"],
-            })
-            note_parts = []
-            for c in outliers:
-                note_parts.append(
-                    f"`{c}` (mean pairwise r = "
-                    f"{s['per_rater_mean_pearson'][c]:.3f})")
-            outlier_notes.append(f"{r}: dropped " + ", ".join(note_parts))
-
     out.append(md_table(
         pd.DataFrame(rel_rows),
         fmt={"Pairwise Pearson r (mean)": "{:.3f}",
@@ -493,30 +381,6 @@ def main():
              "ICC(2,1)": "{:.3f}",
              "ICC(2,k)": "{:.3f}"}))
     out.append("")
-    flat_outliers = {oid for ids in round_outliers.values() for oid in ids}
-    grouped_outlier_ids = []
-    for group in KNOWN_SAME_RATER:
-        if group <= flat_outliers:
-            grouped_outlier_ids.append(sorted(group))
-            flat_outliers -= group
-    for oid in sorted(flat_outliers):
-        grouped_outlier_ids.append([oid])
-    n_unique_outliers = len(grouped_outlier_ids)
-    if grouped_outlier_ids:
-        rater_word = "rater" if n_unique_outliers == 1 else "raters"
-        parts = []
-        for ids in grouped_outlier_ids:
-            if len(ids) == 1:
-                parts.append(f"`{ids[0]}`")
-            else:
-                parts.append(" / ".join(f"`{i}`" for i in ids)
-                             + " (same person across rounds)")
-        out.append(
-            f"After flagging at threshold "
-            f"{OUTLIER_PEARSON_THRESHOLD:.2f} (mean pairwise Pearson r with "
-            f"the other raters in the same round), {n_unique_outliers} "
-            f"{rater_word} dropped: " + ", ".join(parts) + ".")
-        out.append("")
     out.append("Each round's raters are independent. R1 and R2 are reported "
                "separately; per-rater pooling across rounds is omitted "
                "because the two forms collect no per-rater identifier.")
@@ -676,65 +540,30 @@ def main():
         out.append("")
 
     # ------------------------------------------------------------------
-    # 4c. Overall Pearson summary (averaged across rounds, with vs without
-    #     outliers)
+    # 4c. Overall Pearson summary (averaged across rounds)
     # ------------------------------------------------------------------
     out.append("## 4c. Overall Pearson summary (averaged across rounds)")
     out.append("")
-    n_dropped_unique = len(grouped_outlier_ids)
-    rater_noun = "rater" if n_dropped_unique == 1 else "raters"
     out.append("Single-row view of every Pearson-related metric, averaged "
                "across Round 1 and Round 2. Inter-rater stats are the mean "
                "of each round's within-round pairwise mean (raters are not "
                "paired across rounds, so they cannot be pooled directly). "
                "Human-vs-VLM Pearson is computed on per-image human means "
-               "and pooled across both rounds (300 images). The "
-               f"\"excl. outliers\" row drops {n_dropped_unique} unique "
-               f"{rater_noun} flagged in Section 3 -- the same person "
-               f"submitted as `r1_rater_8` in Round 1 and `r2_rater_9` in "
-               f"Round 2 (confirmed off-form), so dropping them removes one "
-               f"row from each round.")
+               "and pooled across both rounds (300 images).")
     out.append("")
 
-    def _vlm_pearson(round_to_keep_raters):
-        """Compute pooled human-mean vs VLM Pearson across both rounds.
-
-        `round_to_keep_raters` maps round name -> list of rater IDs to
-        include when computing per-image human means.
-        """
-        frames = []
-        for round_name, raters in round_to_keep_raters.items():
-            sub = ir[(ir["round"] == round_name) & ir["rater"].isin(raters)]
-            per_image = (sub.groupby(["round", "case_id", "condition"])
+    if all(r in round_stats for r in ["Round 1", "Round 2"]):
+        per_round = [round_stats[r] for r in ["Round 1", "Round 2"]]
+        per_image_all = (ir.groupby(["round", "case_id", "condition"])
                          .agg(human_mean=("rating", "mean"),
                               vlm_qwen=("vlm_qwen", "first"),
                               vlm_gemma=("vlm_gemma", "first"))
                          .reset_index()
                          .dropna(subset=["human_mean",
                                          "vlm_qwen", "vlm_gemma"]))
-            frames.append(per_image)
-        per_image_all = pd.concat(frames, ignore_index=True)
-        return {
-            "n_images": len(per_image_all),
-            "pearson_qwen": pearsonr(per_image_all.human_mean,
-                                     per_image_all.vlm_qwen).statistic,
-            "pearson_gemma": pearsonr(per_image_all.human_mean,
-                                      per_image_all.vlm_gemma).statistic,
-        }
-
-    def _row(label, stats_key):
-        if not all(stats_key in round_stats[r] for r in round_stats):
-            return None
-        per_round = [round_stats[r][stats_key] for r in ["Round 1", "Round 2"]
-                     if r in round_stats]
-        n_raters = ", ".join(str(s["n_raters"]) for s in per_round)
-        keep = {r: list(round_stats[r][stats_key]
-                        ["per_rater_mean_pearson"].keys())
-                for r in round_stats}
-        vlm = _vlm_pearson(keep)
-        return {
-            "Set": label,
-            "Raters (R1, R2)": n_raters,
+        summary_row = {
+            "Raters (R1, R2)": ", ".join(
+                str(s["n_raters"]) for s in per_round),
             "Inter-rater Pearson r": float(np.mean(
                 [s["mean_pearson"] for s in per_round])),
             "Inter-rater kappa": float(np.mean(
@@ -743,15 +572,13 @@ def main():
                 [s["icc1"] for s in per_round])),
             "Inter-rater ICC(2,k)": float(np.mean(
                 [s["icc_k"] for s in per_round])),
-            "Human vs Qwen3-VL (Pearson r, 300 imgs)": vlm["pearson_qwen"],
-            "Human vs Gemma-4 (Pearson r, 300 imgs)": vlm["pearson_gemma"],
+            "Human vs Qwen3-VL (Pearson r, 300 imgs)": pearsonr(
+                per_image_all.human_mean, per_image_all.vlm_qwen).statistic,
+            "Human vs Gemma-4 (Pearson r, 300 imgs)": pearsonr(
+                per_image_all.human_mean, per_image_all.vlm_gemma).statistic,
         }
-
-    summary_rows = [r for r in [_row("All raters", "all"),
-                                _row("Excl. outliers", "clean")] if r]
-    if summary_rows:
         out.append(md_table(
-            pd.DataFrame(summary_rows),
+            pd.DataFrame([summary_row]),
             fmt={"Inter-rater Pearson r": "{:.3f}",
                  "Inter-rater kappa": "{:.3f}",
                  "Inter-rater ICC(2,1)": "{:.3f}",
@@ -768,17 +595,10 @@ def main():
     out.append(f"- {n_r1} raters in Round 1 and {n_r2} in Round 2; per-bias-"
                f"type breakdowns still have wide CIs and should be read as "
                f"directional.")
-    out.append(f"- Round 1 had 13 form responses; 10 were randomly retained "
-               f"(seed {RATER_SAMPLE_SEED}, kept rows {r1_kept}) so both "
-               f"rounds contribute the same number of raters.")
     out.append("- Round 1 and Round 2 use disjoint case samples drawn from "
                "the same lean-stereotype pool. The form collects no "
                "per-rater identifier, so cross-round identity is generally "
-               "unknown and per-rater analyses are reported per round. "
-               "One exception: the rater submitting as `r1_rater_8` and "
-               "`r2_rater_9` has been confirmed off-form to be the same "
-               "person; this rater is the sole outlier flagged in "
-               "Section 3 / 4c.")
+               "unknown and per-rater analyses are reported per round.")
     out.append("- Only seed 1 was rated for each case.")
     out.append("- VLM scores are stored in each round's manifest "
                "(`vlm_qwen_score`, `vlm_gemma_score`) and were generated by "

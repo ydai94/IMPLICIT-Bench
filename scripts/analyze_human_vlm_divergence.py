@@ -8,12 +8,11 @@ Writes:
   reports/human_vlm_divergence.md
   data/human_vlm_divergence_examples.csv
 
-Reuses the loader/parser from analyze_human_eval.py so that "10 raters per
-round, R1 outlier dropped" matches the headline report exactly.
+Reuses the loader from analyze_human_eval.py, so this report uses the
+same 12 raters per round.
 
 Reports:
-  - Per-image table: human mean (across non-outlier raters), Qwen3-VL,
-    Gemma-4, signed deltas.
+  - Per-image table: human mean, Qwen3-VL, Gemma-4, signed deltas.
   - Top-N divergence cases per VLM (default |delta| > 1.5, N = 10).
   - Cross-tab of mean |delta| by bias type and condition.
   - Direction-flip count: cases where human consensus picks one direction
@@ -31,13 +30,9 @@ sys.path.insert(0, f"{ROOT}/scripts")
 
 from analyze_human_eval import (  # noqa: E402
     ROUNDS,
-    RATER_SAMPLE_SEED,
-    TARGET_RATERS,
-    OUTLIER_PEARSON_THRESHOLD,
+    DROPPED_RATERS,
     long_form,
-    select_rater_rows,
 )
-from itertools import combinations  # noqa: E402
 from scipy.stats import pearsonr  # noqa: E402
 
 OUT_MD = f"{ROOT}/reports/human_vlm_divergence.md"
@@ -66,47 +61,15 @@ def md_table(df: pd.DataFrame, fmt=None) -> str:
     return "\n".join([head, sep] + body)
 
 
-def detect_outliers(long: pd.DataFrame) -> set[str]:
-    """Replicate the outlier rule used by analyze_human_eval.py: per round,
-    drop raters whose mean pairwise Pearson r against other raters in the
-    same round on image ratings is below OUTLIER_PEARSON_THRESHOLD."""
-    outliers: set[str] = set()
-    ir = long[long["kind"] == "image_rating"]
-    for round_name in ir["round"].unique():
-        sub = ir[ir["round"] == round_name]
-        wide = (sub.pivot_table(index=["case_id", "condition"],
-                                columns="rater",
-                                values="rating",
-                                aggfunc="first")
-                .dropna())
-        if wide.shape[1] < 2 or wide.empty:
-            continue
-        cols = list(wide.columns)
-        per: dict[str, list[float]] = {c: [] for c in cols}
-        for a, b in combinations(cols, 2):
-            r_ab = pearsonr(wide[a], wide[b]).statistic
-            per[a].append(r_ab)
-            per[b].append(r_ab)
-        for c, vals in per.items():
-            if np.mean(vals) < OUTLIER_PEARSON_THRESHOLD:
-                outliers.add(c)
-    return outliers
-
-
 def main():
-    selections = {r["name"]: select_rater_rows(r["responses"], TARGET_RATERS,
-                                               RATER_SAMPLE_SEED)
-                  for r in ROUNDS}
-    long = pd.concat([long_form(r["name"], r["manifest"], r["responses"],
-                                selections[r["name"]])
+    long = pd.concat([long_form(r["name"], r["manifest"], r["responses"])
                       for r in ROUNDS], ignore_index=True)
+    long = long[~long["rater"].isin(DROPPED_RATERS)].reset_index(drop=True)
     long["rating"] = pd.to_numeric(long["rating"], errors="coerce")
     long["vlm_qwen"] = pd.to_numeric(long["vlm_qwen"], errors="coerce")
     long["vlm_gemma"] = pd.to_numeric(long["vlm_gemma"], errors="coerce")
 
-    outlier_raters = detect_outliers(long)
-    ir = long[(long["kind"] == "image_rating")
-              & ~long["rater"].isin(outlier_raters)].copy()
+    ir = long[long["kind"] == "image_rating"].copy()
 
     # Pull bias_type + condition from the manifest via the long DataFrame.
     # Each (round, case_id, condition) cell already carries vlm_qwen and
@@ -160,11 +123,9 @@ def main():
     n_cases = per_image["case_id"].nunique()
     out.append(
         f"Constructed from `{ROOT.split('/')[-1]}/data/human_eval{{,_round2}}/` "
-        f"using the same loader as `analyze_human_eval.py`. Outlier raters "
-        f"flagged at threshold {OUTLIER_PEARSON_THRESHOLD:.2f} are excluded "
-        f"({sorted(outlier_raters)}). Rows below: one per (round, case_id, "
-        f"condition) image, with `human_mean` averaged across the "
-        f"non-outlier raters in that round.")
+        f"using the same loader as `analyze_human_eval.py` (12 raters per "
+        f"round). Rows below: one per (round, case_id, condition) image, "
+        f"with `human_mean` averaged across the round's raters.")
     out.append("")
     out.append(
         f"- Rounds: {n_rounds}; cases: {n_cases}; images with both VLM "
