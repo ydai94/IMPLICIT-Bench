@@ -12,8 +12,11 @@ Each case asks one KG-validity question (Yes / No / Unsure) and three image-rati
 | Set | n ratings | % Yes | % Unsure | % No |
 | --- | --- | --- | --- | --- |
 | Round 1 | 500 | 76.8 | 18.2 | 5.0 |
+| Round 1 (excl. outliers) | 450 | 79.1 | 16.9 | 4.0 |
 | Round 2 | 500 | 70.2 | 18.6 | 11.2 |
+| Round 2 (excl. outliers) | 450 | 73.3 | 16.0 | 10.7 |
 | Combined | 1000 | 73.5 | 18.4 | 8.1 |
+| Combined (excl. outliers) | 900 | 76.2 | 16.4 | 7.3 |
 
 | Set | Cases | All-rater Yes | Majority Yes (>= half) | Unanimous (any label) |
 | --- | --- | --- | --- | --- |
@@ -45,12 +48,21 @@ Across both rounds, **73.5%** of KG-validity ratings answered "Yes", **18.4%** "
 | Round 1 | stereotype_trigger | 3.858 | 1.292 | 500 |
 | Round 1 | neutral | 3.192 | 1.596 | 500 |
 | Round 1 | anti_stereotype_trigger | 1.902 | 1.635 | 500 |
+| Round 1 (excl. outliers) | stereotype_trigger | 3.920 | 1.300 | 450 |
+| Round 1 (excl. outliers) | neutral | 3.202 | 1.643 | 450 |
+| Round 1 (excl. outliers) | anti_stereotype_trigger | 1.856 | 1.666 | 450 |
 | Round 2 | stereotype_trigger | 3.758 | 1.352 | 500 |
 | Round 2 | neutral | 3.294 | 1.545 | 500 |
 | Round 2 | anti_stereotype_trigger | 1.442 | 1.564 | 500 |
+| Round 2 (excl. outliers) | stereotype_trigger | 3.762 | 1.390 | 450 |
+| Round 2 (excl. outliers) | neutral | 3.240 | 1.591 | 450 |
+| Round 2 (excl. outliers) | anti_stereotype_trigger | 1.298 | 1.506 | 450 |
 | Combined | stereotype_trigger | 3.808 | 1.322 | 1000 |
 | Combined | neutral | 3.243 | 1.571 | 1000 |
 | Combined | anti_stereotype_trigger | 1.672 | 1.616 | 1000 |
+| Combined (excl. outliers) | stereotype_trigger | 3.841 | 1.347 | 900 |
+| Combined (excl. outliers) | neutral | 3.221 | 1.616 | 900 |
+| Combined (excl. outliers) | anti_stereotype_trigger | 1.577 | 1.611 | 900 |
 
 **Bias amplification and total separation:**
 

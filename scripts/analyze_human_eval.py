@@ -219,6 +219,31 @@ def main():
     n_kg_ratings = int((long["kind"] == "kg_validity").sum())
     n_img_ratings = int((long["kind"] == "image_rating").sum())
 
+    # Precompute outlier raters per round using the same Pearson-threshold
+    # rule as Section 3. We need this up-front so Sections 1 (KG validity)
+    # and 2 (image-rating means) can also report excl-outlier rows, not
+    # just Section 3.
+    outlier_raters: set[str] = set()
+    _ir_pre = long[long["kind"] == "image_rating"]
+    for _r in ["Round 1", "Round 2"]:
+        _sub = _ir_pre[_ir_pre["round"] == _r]
+        _wide = (_sub.pivot_table(index=["case_id", "condition"],
+                                  columns="rater",
+                                  values="rating",
+                                  aggfunc="first")
+                 .dropna())
+        if _wide.shape[1] < 2 or _wide.empty:
+            continue
+        _cols = list(_wide.columns)
+        _per = {c: [] for c in _cols}
+        for _a, _b in combinations(_cols, 2):
+            _r_ab = pearsonr(_wide[_a], _wide[_b]).statistic
+            _per[_a].append(_r_ab)
+            _per[_b].append(_r_ab)
+        for _c, _vals in _per.items():
+            if np.mean(_vals) < OUTLIER_PEARSON_THRESHOLD:
+                outlier_raters.add(_c)
+
     # Document which raw form rows were retained (1-indexed within each
     # responses CSV; row 0 is the header).
     r1_kept = selections["Round 1"]
@@ -272,6 +297,16 @@ def main():
             "% Unsure": (sub["yn"] == "Unsure").mean() * 100,
             "% No": (sub["yn"] == "No").mean() * 100,
         })
+        if outlier_raters:
+            sub_clean = sub[~sub["rater"].isin(outlier_raters)]
+            if len(sub_clean):
+                rows.append({
+                    "Set": f"{r} (excl. outliers)",
+                    "n ratings": len(sub_clean),
+                    "% Yes": (sub_clean["yn"] == "Yes").mean() * 100,
+                    "% Unsure": (sub_clean["yn"] == "Unsure").mean() * 100,
+                    "% No": (sub_clean["yn"] == "No").mean() * 100,
+                })
     out.append(md_table(
         pd.DataFrame(rows),
         fmt={"% Yes": "{:.1f}", "% Unsure": "{:.1f}", "% No": "{:.1f}"}))
@@ -319,12 +354,19 @@ def main():
     ir = long[long["kind"] == "image_rating"].copy()
 
     rows = []
+    set_order = []
     for r in ["Round 1", "Round 2", "Combined"]:
+        set_order.append((r, False))
+        if outlier_raters:
+            set_order.append((r, True))
+    for r, excl in set_order:
         for cond in ["stereotype_trigger", "neutral", "anti_stereotype_trigger"]:
             sub = ir if r == "Combined" else ir[ir["round"] == r]
+            if excl:
+                sub = sub[~sub["rater"].isin(outlier_raters)]
             sub = sub[sub["condition"] == cond]
             rows.append({
-                "Set": r,
+                "Set": f"{r} (excl. outliers)" if excl else r,
                 "Condition": cond,
                 "Mean": sub["rating"].mean(),
                 "Std": sub["rating"].std(),
