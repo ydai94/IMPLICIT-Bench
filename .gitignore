@@ -27,7 +27,10 @@ checkpoints/
 experiments/slurm/logs/
 
 # Reports (local-only analysis output)
-# reports/
+reports/
+
+# Divergence example images (local-only)
+imgs/divergence_examples/
 
 # Claude config
 .claude/
