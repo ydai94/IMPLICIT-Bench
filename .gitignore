@@ -21,6 +21,8 @@ data/case_studies_intro_figure.zip
 
 # Cache (only embeddings are large; track the rest)
 cache/embeddings/
+cache/nano_banana_batches/
+cache/gpt_image_batches/
 checkpoints/
 
 # Logs
