@@ -44,7 +44,7 @@ from pathlib import Path
 import pandas as pd
 from tqdm import tqdm
 
-REPO_ROOT = Path("/data/gpfs/projects/punim2888/stereoimage")
+REPO_ROOT = Path("/path/to/stereoimage")
 sys.path.insert(0, str(REPO_ROOT / "experiments"))
 
 from evaluate_all import score_image_api  # noqa: E402

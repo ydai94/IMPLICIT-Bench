@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-_BASE = "/data/gpfs/projects/punim2888/stereoimage"
+_BASE = "/path/to/stereoimage"
 MERGED_CSV = f"{_BASE}/data/benchmark_scores.csv"
 AGREEMENT_CSV = f"{_BASE}/reports/agreement_by_bias_type.csv"
 OUT_CSV = f"{_BASE}/reports/category_difficulty.csv"

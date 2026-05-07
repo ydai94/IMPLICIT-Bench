@@ -25,7 +25,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-ROOT = "/data/gpfs/projects/punim2888/stereoimage"
+ROOT = "/path/to/stereoimage"
 sys.path.insert(0, f"{ROOT}/scripts")
 
 from analyze_human_eval import (  # noqa: E402

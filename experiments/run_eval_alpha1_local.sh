@@ -25,7 +25,7 @@ eval "$(conda shell.bash hook)"
 source /apps/easybuild-2022/easybuild/software/Core/Anaconda3/2024.02-1/etc/profile.d/conda.sh
 conda activate videoGen
 
-SCRIPT_DIR=/data/gpfs/projects/punim2888/stereoimage/experiments
+SCRIPT_DIR=/path/to/stereoimage/experiments
 LOG_DIR=${SCRIPT_DIR}/logs
 mkdir -p "${LOG_DIR}"
 cd "${SCRIPT_DIR}"

@@ -46,7 +46,7 @@ BATCH_MAX_REQUESTS = 50000
 
 def load_env_file():
     """Mirror evaluate_all.py's .env loader so the same key works."""
-    env_path = Path("/data/gpfs/projects/punim2888/stereoset/backup/"
+    env_path = Path("/path/to/data/stereoset/backup/"
                     "stereoset-augment/.env")
     if not env_path.exists():
         return

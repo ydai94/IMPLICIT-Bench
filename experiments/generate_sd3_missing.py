@@ -2,7 +2,7 @@
 Generate the 15 SD3 neutral images missing from exp_13_sd3_baseline.
 
 Uses the same hyperparameters as the original CrowS-Pairs SD3 run:
-  model:       /data/gpfs/projects/punim2888/models/stable-diffusion-3
+  model:       /path/to/data/models/stable-diffusion-3
   dtype:       torch.float16
   steps:       28
   guidance:    7.0
@@ -34,7 +34,7 @@ from diffusers import StableDiffusion3Pipeline  # noqa: E402
 from config import DATA_CSV, exp_output_dir  # noqa: E402
 
 EXP_ID = 13
-MODEL_PATH = "/data/gpfs/projects/punim2888/models/stable-diffusion-3"
+MODEL_PATH = "/path/to/data/models/stable-diffusion-3"
 STEPS = 28
 GUIDANCE = 7.0
 BASE_SEED = 42

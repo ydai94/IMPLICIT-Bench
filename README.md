@@ -56,15 +56,8 @@ cache/          LLM/VLM outputs and per-experiment evaluation CSVs
 
 ## Setup
 
-The pipeline is built around an HPC environment using conda:
-
-```bash
-module load Anaconda3/2024.02-1
-conda activate videoGen
-```
-
-Dependencies are mostly standard: `numpy`, `pandas`, `matplotlib`, `torch`,
-`transformers`, `diffusers`, `scikit-learn`, plus per-script extras (`google-api-python-client`
+Dependencies: `numpy`, `pandas`, `matplotlib`, `torch`, `transformers`,
+`diffusers`, `scikit-learn`, plus per-script extras (`google-api-python-client`
 for the form generators, `openai` / `anthropic` SDKs for LLM judging).
 
 GPU is required for image generation and VLM evaluation; analysis scripts

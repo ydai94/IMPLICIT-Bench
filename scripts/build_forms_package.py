@@ -45,7 +45,7 @@ import sys
 import pandas as pd
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_IMAGES_BASE = "/data/gpfs/projects/punim2888"
+DEFAULT_IMAGES_BASE = "/path/to/data"
 DEFAULT_SAMPLED_CSV = os.path.join(REPO_ROOT, "data", "human_eval", "sampled_cases.csv")
 DEFAULT_OUT_DIR = os.path.join(REPO_ROOT, "data", "human_eval")
 DEFAULT_STEREOSET_MERGED = os.path.join(REPO_ROOT, "data", "merged_stereoset.csv")

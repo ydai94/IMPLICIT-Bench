@@ -56,7 +56,7 @@ that supports a complete human-vs-VLM correlation.
 On the cluster where the Qwen-Image PNGs live:
 
 ```
-python scripts/build_forms_package.py --images-base-dir /data/gpfs/projects/punim2888
+python scripts/build_forms_package.py --images-base-dir /path/to/data
 ```
 
 This:

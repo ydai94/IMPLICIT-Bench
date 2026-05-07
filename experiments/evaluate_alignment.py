@@ -34,7 +34,7 @@ from config import (
 
 # Load API key: prefer environment variable, fall back to .env file
 from pathlib import Path as _Path
-_env_path = _Path("/data/gpfs/projects/punim2888/stereoset/backup/stereoset-augment/.env")
+_env_path = _Path("/path/to/data/stereoset/backup/stereoset-augment/.env")
 if _env_path.exists():
     for _line in _env_path.read_text().splitlines():
         if "=" in _line and not _line.strip().startswith("#"):

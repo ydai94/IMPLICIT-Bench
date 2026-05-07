@@ -26,8 +26,8 @@ eval "$(conda shell.bash hook)"
 source /apps/easybuild-2022/easybuild/software/Core/Anaconda3/2024.02-1/etc/profile.d/conda.sh
 conda activate videoGen
 
-SCRIPT_DIR=/data/gpfs/projects/punim2888/stereoimage/experiments
-RESULTS_DIR=/data/gpfs/projects/punim2888/stereoimage/cache/eval_results
+SCRIPT_DIR=/path/to/stereoimage/experiments
+RESULTS_DIR=/path/to/stereoimage/cache/eval_results
 LOG_DIR=${SCRIPT_DIR}/logs
 mkdir -p "${LOG_DIR}"
 cd "${SCRIPT_DIR}"
@@ -39,7 +39,7 @@ WORKERS="${WORKERS:-16}"
 
 # API scripts load OPENROUTER_API_KEY from the env or fall back to the
 # stereoset .env file. Surface a clear error here if neither is set.
-if [ -z "${OPENROUTER_API_KEY:-}" ] && [ ! -f /data/gpfs/projects/punim2888/stereoset/backup/stereoset-augment/.env ]; then
+if [ -z "${OPENROUTER_API_KEY:-}" ] && [ ! -f /path/to/data/stereoset/backup/stereoset-augment/.env ]; then
     echo "ERROR: OPENROUTER_API_KEY not set and .env fallback missing" >&2
     exit 1
 fi

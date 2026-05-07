@@ -3,7 +3,7 @@
 import os
 
 # --- Paths ---
-BASE_DIR = "/data/gpfs/projects/punim2888"
+BASE_DIR = "/path/to/data"
 PROJECT_DIR = os.path.join(BASE_DIR, "stereoimage")
 DATA_CSV = os.path.join(PROJECT_DIR, "data", "benchmark_prompts.csv")
 CACHE_DIR = os.path.join(PROJECT_DIR, "cache")

@@ -48,7 +48,7 @@ BATCH_META_DIR = os.path.join(CACHE_DIR, "nano_banana_batches")
 
 def load_env_file():
     """Load API keys from the project-local .env (stereoimage/.env)."""
-    env_path = Path("/data/gpfs/projects/punim2888/stereoimage/.env")
+    env_path = Path("/path/to/stereoimage/.env")
     if not env_path.exists():
         return
     for line in env_path.read_text().splitlines():

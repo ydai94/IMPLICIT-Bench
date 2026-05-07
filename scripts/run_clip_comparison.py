@@ -32,7 +32,7 @@ from transformers import CLIPModel, CLIPProcessor
 
 
 # --- Constants ---
-BASE_DIR = "/data/gpfs/projects/punim2888"
+BASE_DIR = "/path/to/data"
 STEREOSET_IMAGE_BASE = os.path.join(BASE_DIR, "stereoset", "generated_images", "qwen_v5")
 CROWSPAIRS_IMAGE_BASE = os.path.join(BASE_DIR, "crows-pairs", "generated_images", "qwen")
 STEREOSET_CSV = os.path.join(BASE_DIR, "stereoimage", "data", "lean_stereotype_union.csv")

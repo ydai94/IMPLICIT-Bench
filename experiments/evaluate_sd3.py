@@ -22,7 +22,7 @@ from tqdm import tqdm
 from config import DATA_CSV, EVAL_RESULTS_DIR
 from evaluate_all import OPENROUTER_API_KEY, score_image_api
 
-BASE_DIR = "/data/gpfs/projects/punim2888"
+BASE_DIR = "/path/to/data"
 STEREOSET_SD3_DIR = os.path.join(BASE_DIR, "stereoset", "generated_images", "sd3")
 CROWSPAIRS_SD3_DIR = os.path.join(BASE_DIR, "crows-pairs", "generated_images", "sd3")
 STEREOSET_CSV = os.path.join(BASE_DIR, "stereoset", "stereotype_trigger_results.csv")

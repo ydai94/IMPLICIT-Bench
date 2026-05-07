@@ -9,7 +9,7 @@ from collections import defaultdict
 from itertools import combinations
 
 # ── Config ────────────────────────────────────────────────────────────────────
-_BASE = "/data/gpfs/projects/punim2888/stereoimage"
+_BASE = "/path/to/stereoimage"
 MATCHING_CSV = f"{_BASE}/data/labeled_matching.csv"
 INDEPENDENT_CSV = f"{_BASE}/data/labeled_independent.csv"
 REPORT_FILE = f"{_BASE}/reports/agreement_report.md"

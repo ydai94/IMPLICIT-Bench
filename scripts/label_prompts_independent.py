@@ -8,7 +8,7 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ── Load API key ──────────────────────────────────────────────────────────────
-_env_path = Path("/data/gpfs/projects/punim2888/stereoset/backup/stereoset-augment/.env")
+_env_path = Path("/path/to/data/stereoset/backup/stereoset-augment/.env")
 if _env_path.exists():
     for line in _env_path.read_text().splitlines():
         line = line.strip()
@@ -18,11 +18,11 @@ if _env_path.exists():
 
 OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
 
-sys.path.insert(0, "/data/gpfs/projects/punim2888/stereoset/backup/stereoset-augment")
+sys.path.insert(0, "/path/to/data/stereoset/backup/stereoset-augment")
 from utils import call_llm
 
 # ── Config ────────────────────────────────────────────────────────────────────
-_BASE = "/data/gpfs/projects/punim2888/stereoimage"
+_BASE = "/path/to/stereoimage"
 INPUT_CSV = f"{_BASE}/data/benchmark_prompts.csv"
 CHECKPOINT_FILE = f"{_BASE}/checkpoints/independent_checkpoint_dedup.jsonl"
 OUTPUT_CSV = f"{_BASE}/data/labeled_independent.csv"

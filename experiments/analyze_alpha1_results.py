@@ -34,8 +34,8 @@ from pathlib import Path
 
 import pandas as pd
 
-RES = Path("/data/gpfs/projects/punim2888/stereoimage/cache/eval_results")
-OUT = Path("/data/gpfs/projects/punim2888/stereoimage/reports/alpha1_comparison.md")
+RES = Path("/path/to/stereoimage/cache/eval_results")
+OUT = Path("/path/to/stereoimage/reports/alpha1_comparison.md")
 DEDUP_KEY = ["case_id", "alpha", "seed"]
 JOIN_KEY = ["case_id", "seed"]
 

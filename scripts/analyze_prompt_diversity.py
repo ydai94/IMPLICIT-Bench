@@ -24,7 +24,7 @@ from collections import Counter
 
 import pandas as pd
 
-ROOT = "/data/gpfs/projects/punim2888/stereoimage"
+ROOT = "/path/to/stereoimage"
 PROMPTS_CSV = f"{ROOT}/data/benchmark_prompts.csv"
 OUT_MD = f"{ROOT}/reports/prompt_diversity.md"
 

@@ -26,7 +26,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
-ROOT = "/data/gpfs/projects/punim2888/stereoimage"
+ROOT = "/path/to/stereoimage"
 
 ROUNDS = [
     {

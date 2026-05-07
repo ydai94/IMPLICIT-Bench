@@ -34,7 +34,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-ROOT = "/data/gpfs/projects/punim2888/stereoimage"
+ROOT = "/path/to/stereoimage"
 PROMPTS_CSV = f"{ROOT}/data/benchmark_prompts.csv"
 LABELED_CSV = f"{ROOT}/data/labeled_matching.csv"
 SCORES_CSV = f"{ROOT}/data/benchmark_scores.csv"

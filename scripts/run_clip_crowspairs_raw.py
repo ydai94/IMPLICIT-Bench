@@ -26,7 +26,7 @@ from PIL import Image
 from transformers import CLIPModel, CLIPProcessor
 
 
-BASE = Path("/data/gpfs/projects/punim2888")
+BASE = Path("/path/to/data")
 IMAGE_BASE = BASE / "crows-pairs" / "generated_images" / "qwen"
 MODEL_NAME = "openai/clip-vit-large-patch14"
 MODEL_CACHE = BASE / "models" / "clip-vit-large-patch14"

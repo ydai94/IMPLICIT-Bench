@@ -44,7 +44,7 @@ from config import (  # noqa: E402
 
 DEFAULT_EXP_ID = 14
 MODEL_PATH = (
-    "/data/gpfs/projects/punim2888/models/"
+    "/path/to/data/models/"
     "models--Qwen--Qwen3-VL-30B-A3B-Instruct/"
     "snapshots/9c4b90e1e4ba969fd3b5378b57d966d725f1b86c"
 )
