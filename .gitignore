@@ -23,8 +23,16 @@ data/case_studies_intro_figure.zip
 cache/embeddings/
 checkpoints/
 
-# Slurm logs
+# Logs
+*.log
+experiments/logs/
 experiments/slurm/logs/
+slurm-*.out
+slurm-*.err
+
+# Slurm scripts and submit helpers
+*.slurm
+experiments/slurm/
 
 # Reports (local-only analysis output)
 reports/
