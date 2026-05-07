@@ -19,7 +19,7 @@ data/human_eval_round2/images.zip
 data/case_studies_intro_figure/
 data/case_studies_intro_figure.zip
 
-# Cache (only embeddings are large; track the rest)
+# Cache (large or environment-specific; regenerate locally)
 cache/embeddings/
 cache/nano_banana_batches/
 cache/gpt_image_batches/
@@ -28,7 +28,6 @@ checkpoints/
 # Logs
 *.log
 experiments/logs/
-experiments/slurm/logs/
 slurm-*.out
 slurm-*.err
 
@@ -38,7 +37,13 @@ experiments/slurm/
 
 # Reports (local-only analysis output)
 reports/
+reports.zip
 summary_stats.txt
+
+# Editor/backup files
+*.bak
+*.swp
+*~
 
 # Divergence example images (local-only)
 imgs/divergence_examples/
