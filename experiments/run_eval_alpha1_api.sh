@@ -21,10 +21,7 @@
 
 set -euo pipefail
 
-module load Anaconda3/2024.02-1
-eval "$(conda shell.bash hook)"
-source /apps/easybuild-2022/easybuild/software/Core/Anaconda3/2024.02-1/etc/profile.d/conda.sh
-conda activate videoGen
+# Activate your Python/conda environment here.
 
 SCRIPT_DIR=/path/to/stereoimage/experiments
 RESULTS_DIR=/path/to/stereoimage/cache/eval_results
