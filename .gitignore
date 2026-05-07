@@ -38,6 +38,7 @@ experiments/slurm/
 
 # Reports (local-only analysis output)
 reports/
+summary_stats.txt
 
 # Divergence example images (local-only)
 imgs/divergence_examples/
